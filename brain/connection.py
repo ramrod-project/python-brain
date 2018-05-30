@@ -17,7 +17,7 @@ SELF_TEST = {BRAIN_DB: [JOBS, TARGETS, OUTPUTS],
 
 DEFAULT_HOSTS = {"PROD": "rethinkdb",
                  "QA": "rethinkdb",
-                 "DEV": "rethinkdb_testing",
+                 "DEV": "localhost",
                  "TESTING": "localhost",
                  "": "localhost", #environment not configured, try anyway
                 }
