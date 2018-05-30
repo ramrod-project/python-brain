@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from setuptools import setup, find_packages
 
-VERSION = "0.1.4"
+VERSION = "0.1.5"
 
 setup(
     name="ramrodbrain",
@@ -14,6 +14,10 @@ setup(
     license='MIT',
     url='https://github.com/ramrod-project/database-brain',
     download_url='https://github.com/ramrod-project/python-brain/archive/ramrodbrain-{}.tar.gz'.format(VERSION),
+    install_requires=[
+        'rethinkdb',
+        "protobuf",
+    ],
     classifiers=[
                        'License :: OSI Approved :: MIT License',
                        'Operating System :: OS Independent',
