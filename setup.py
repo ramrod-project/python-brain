@@ -13,7 +13,7 @@ setup(
     maintainer_email='dan@bauman.space',
     license='MIT',
     url='https://github.com/ramrod-project/database-brain',
-    download_url='https://github.com/ramrod-project/database-brain/archive/ramrodbrain-{}.tar.gz'.format(VERSION),
+    download_url='https://github.com/ramrod-project/python-brain/archive/ramrodbrain-{}.tar.gz'.format(VERSION),
     classifiers=[
                        'License :: OSI Approved :: MIT License',
                        'Operating System :: OS Independent',
