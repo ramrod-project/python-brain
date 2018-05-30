@@ -65,7 +65,8 @@ def connect(verify=True,
     :param kwargs:  <dict> passthrough rethinkdb arguments
     :return:
     """
-    host = DEFAULT_HOSTS.get(check_stage_env())
+    if not host:
+        host = DEFAULT_HOSTS.get(check_stage_env())
     connection = None
     tries = 0
     time_quit = time() + timeout
