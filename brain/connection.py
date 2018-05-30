@@ -50,10 +50,10 @@ def brain_post(connection, requirements=SELF_TEST):
         for table in requirements[database]:
             assert (table in remote_tables), "{} must exist in {}".format(table, database)
 
-def connect(verify=True,
-            host=None,
+def connect(host=None,
             port=rethinkdb.DEFAULT_PORT,
             timeout=20,
+            verify=True,
             **kwargs):
     """
     RethinkDB semantic connection wrapper
