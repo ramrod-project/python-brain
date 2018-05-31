@@ -243,9 +243,10 @@ def advertise_plugin_commands(plugin_name, commands,
     if verify_commands and not verify({"Commands": commands},
                                       Commands()):
         raise ValueError("Invalid Commands")
-    RPX.table(plugin_name).insert(commands,
-                                  conflict="update"
-                                  ).run(conn)
+    success = RPX.table(plugin_name).insert(commands,
+                                            conflict="update"
+                                           ).run(conn)
+    return success
 
 @wrap_rethink_generator_errors
 @wrap_connection
