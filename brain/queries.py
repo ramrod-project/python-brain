@@ -30,6 +30,24 @@ def wrap_rethink_errors(f, *args, **kwargs):
         raise ValueError(str(e))
 
 @decorator
+def wrap_rethink_generator_errors(f, *args, **kwargs):
+    """
+
+    :param f:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    try:
+        for data in f(*args, **kwargs):
+            yield data
+    except (r.errors.ReqlOpFailedError,
+            r.errors.ReqlError,
+            r.errors.ReqlDriverError) as e:
+        raise ValueError(str(e))
+
+
+@decorator
 def wrap_connection(f, *args, **kwargs):
     """
     conn (connection) must be the last positional argument
@@ -46,6 +64,7 @@ def wrap_connection(f, *args, **kwargs):
         args = tuple(new_args)
     return f(*args, **kwargs)
 
+@wrap_rethink_generator_errors
 @wrap_connection
 def get_targets(conn=None):
     """
@@ -58,6 +77,7 @@ def get_targets(conn=None):
     for item in results:
         yield item
 
+@wrap_rethink_generator_errors
 @wrap_connection
 def get_targets_by_plugin(plugin_name, conn=None):
     """
@@ -70,6 +90,7 @@ def get_targets_by_plugin(plugin_name, conn=None):
     for item in results:
         yield item
 
+@wrap_rethink_generator_errors
 @wrap_connection
 def get_plugin_commands(plugin_name, conn=None):
     """
@@ -84,6 +105,7 @@ def get_plugin_commands(plugin_name, conn=None):
     for item in results:
         yield item
 
+@wrap_rethink_errors
 @wrap_connection
 def get_plugin_command(plugin_name, command_name, conn=None):
     """
@@ -99,6 +121,7 @@ def get_plugin_command(plugin_name, command_name, conn=None):
         continue  # exhausting the cursor
     return command
 
+@wrap_rethink_errors
 @wrap_connection
 def is_job_done(job_id, conn=None):
     """
@@ -114,6 +137,7 @@ def is_job_done(job_id, conn=None):
         result = item
     return result
 
+@wrap_rethink_errors
 @wrap_connection
 def get_output_content(job_id, max_size=1024, conn=None):
     """
@@ -135,6 +159,7 @@ def get_output_content(job_id, max_size=1024, conn=None):
             content = ""
     return content
 
+@wrap_rethink_errors
 @wrap_connection
 def insert_new_target(plugin_name, location_num,
                       port_num=0, optional="",
@@ -157,6 +182,7 @@ def insert_new_target(plugin_name, location_num,
     output = RBT.insert([target]).run(conn)
     return output
 
+@wrap_rethink_errors
 @wrap_connection
 def insert_jobs(jobs, verify_jobs=True, conn=None):
     """
@@ -173,6 +199,7 @@ def insert_jobs(jobs, verify_jobs=True, conn=None):
     inserted = RBJ.insert(jobs).run(conn)
     return inserted
 
+@wrap_rethink_errors
 @wrap_connection
 def plugin_exists(plugin_name, conn=None):
     """
@@ -183,6 +210,7 @@ def plugin_exists(plugin_name, conn=None):
     """
     return plugin_name in RPX.table_list().run(conn)
 
+@wrap_rethink_errors
 @wrap_connection
 def create_plugin(plugin_name, conn=None):
     """
@@ -219,6 +247,7 @@ def advertise_plugin_commands(plugin_name, commands,
                                   conflict="update"
                                   ).run(conn)
 
+@wrap_rethink_generator_errors
 @wrap_connection
 def get_next_job(plugin_name,
                  verify_job=False, conn=None):
