@@ -15,16 +15,27 @@ RPX = r.db("Plugins")
 @decorator
 def wrap_rethink_errors(f, *args, **kwargs):
     try:
-        f(*args, **kwargs)
+        return f(*args, **kwargs)
     except (r.errors.ReqlOpFailedError,
             r.errors.ReqlError) as e:
         raise ValueError(str(e))
 
 @decorator
 def wrap_connection(f, *args, **kwargs):
-    if not kwargs.get("conn"):
-        kwargs['conn'] = connect()
-    f(*args, **kwargs)
+    """
+    conn (connection) must be the last positional argument
+    in all wrapped functions
+
+    :param f: <function> to call
+    :param args:  <tuple> positional arguments
+    :param kwargs: <dict> keyword arguments
+    :return:
+    """
+    if not args[-1]:
+        new_args = list(args)
+        new_args[-1] = connect()
+        args = tuple(new_args)
+    return f(*args, **kwargs)
 
 @wrap_connection
 def get_targets(conn=None):
