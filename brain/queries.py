@@ -210,12 +210,14 @@ def advertise_plugin_commands(plugin_name, commands,
                                   ).run(conn)
 
 @wrap_connection
-def get_next_job_for(plugin_name, verify_job=False, conn=None):
+def get_next_job(plugin_name,
+                 verify_job=False, conn=None):
     """
 
-    :param plugin_name:
-    :param conn:
-    :return:
+    :param plugin_name: <str>
+    :param verify_job: <bool>
+    :param conn: <connection> or <NoneType>
+    :return: <generator> yields <dict>
     """
     job_cur = RBJ.filter((r.row["JobTarget"]["PluginName"] == plugin_name) &
                          (r.row["Status"] == "Ready")).run(conn)
