@@ -1,7 +1,7 @@
 """
 assortment of wrapped queries
 """
-from .brain_pb2 import Jobs, Target, Commands
+from .brain_pb2 import Job, Jobs, Target, Commands
 from .checks import verify
 from .connection import rethinkdb as r
 from .connection import connect
@@ -202,9 +202,24 @@ def advertise_plugin_commands(plugin_name, commands,
     :return:
     """
     assert isinstance(commands, list)
-    if verify_commands and not verify({"Commands":commands},
+    if verify_commands and not verify({"Commands": commands},
                                       Commands()):
         raise ValueError("Invalid Commands")
     RPX.table(plugin_name).insert(commands,
                                   conflict="update"
                                   ).run(conn)
+
+@wrap_connection
+def get_next_job_for(plugin_name, verify_job=False, conn=None):
+    """
+
+    :param plugin_name:
+    :param conn:
+    :return:
+    """
+    job_cur = RBJ.filter((r.row["JobTarget"]["PluginName"] == plugin_name) &
+                         (r.row["Status"] == "Ready")).run(conn)
+    for job in job_cur:
+        if verify_job and not verify(job, Job()):
+            continue #to the next job... warn?
+        yield job
