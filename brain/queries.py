@@ -9,7 +9,7 @@ from decorator import decorator
 
 RBT = r.db("Brain").table("Targets")
 RBJ = r.db("Brain").table("Jobs")
-RBO = r.db("Brain").table("Output")
+RBO = r.db("Brain").table("Outputs")
 RPX = r.db("Plugins")
 
 @decorator
@@ -40,7 +40,7 @@ def get_targets_by_plugin(plugin_name, conn=None):
     """
     conn = conn if conn else connect()
     targets = RBT
-    results = targets.filter({"PluginName":plugin_name}).run(conn)
+    results = targets.filter({"PluginName": plugin_name}).run(conn)
     for item in results:
         yield item
 
