@@ -138,7 +138,7 @@ def get_output_content(job_id, max_size=1024, conn=None):
 @wrap_connection
 def insert_new_target(plugin_name, location_num,
                       port_num=0, optional="",
-                      verify_target=True, conn=None):
+                      verify_target=False, conn=None):
     """
     insert_new_target function gets called when the user's input is validated
     and inserts a new target to Brain.Targets table.
