@@ -1,7 +1,8 @@
 """
 assortment of wrapped queries
 """
-
+from .brain_pb2 import Jobs, Target
+from .checks import verify
 from .connection import rethinkdb as r
 from .connection import connect
 
@@ -22,6 +23,18 @@ def get_targets(conn=None):
     for item in results:
         yield item
 
+def get_targets_by_plugin(plugin_name, conn=None):
+    """
+    get_targets_by_plugin function from Brain.Targets table
+
+    :return: <generator> yields dict objects
+    """
+    conn = conn if conn else connect()
+    targets = RBT
+    results = targets.run(conn).filter({"PluginName":plugin_name})
+    for item in results:
+        yield item
+
 def get_plugin_commands(plugin_name, conn=None):
     """
     get_specific_commands function queries Plugins.<PluginName> table
@@ -35,6 +48,21 @@ def get_plugin_commands(plugin_name, conn=None):
     results = RPX.table(plugin_name).run(conn)
     for item in results:
         yield item
+
+def get_plugin_command(plugin_name, command_name, conn=None):
+    """
+    get_specific_command function queries a specific CommandName
+
+    :param plugin_name: <str> PluginName
+    :param command_name: <str> CommandName
+    :return: <dict>
+    """
+    conn = conn if conn else connect()
+    commands = RPX.table(plugin_name).filter(
+        {"CommandName": command_name}).run(conn)
+    for command in commands:
+        continue  # exhausting the cursor
+    return command
 
 def is_job_done(job_id, conn=None):
     """
@@ -73,8 +101,11 @@ def get_output_content(job_id, max_size=1024, conn=None):
     return content
 
 
+
+    return query_specific_plugin_name
 def insert_new_target(plugin_name, location_num,
-                      port_num=0, optional="", conn=None):
+                      port_num=0, optional="",
+                      verify_target=True, conn=None):
     """
     insert_new_target function gets called when the user's input is validated
     and inserts a new target to Brain.Targets table.
@@ -85,10 +116,28 @@ def insert_new_target(plugin_name, location_num,
     :return: <dict> rethinkdb insert response value
     """
     conn = conn if conn else connect()
-    output = RBT.insert([
-        {"PluginName": str(plugin_name),
-         "Location": str(location_num),
-         "Port": str(port_num),
-         "Optional": {"init": str(optional)}}
-    ]).run(conn)
+    target = {"PluginName": str(plugin_name),
+              "Location": str(location_num),
+              "Port": str(port_num),
+              "Optional": {"init": str(optional)}}
+    if verify_target and not verify(target, Target()):
+        raise ValueError("Invalid Target")
+    output = RBT.insert([target]).run(conn)
     return output
+
+
+def insert_jobs(jobs, verify_jobs=True, conn=None):
+    """
+    insert_jobs function inserts data into Brain.Jobs table
+
+    jobs must be in Job format
+
+    :param jobs: <list> of Jobs
+    :return: <dict> rethinkdb insert response value
+    """
+    conn = conn if conn else connect()
+    assert isinstance(jobs, list)
+    if verify_jobs and not verify({"Jobs": jobs}, Jobs()):
+        raise ValueError("Invalid Jobs")
+    inserted = RBJ.insert(jobs).run(conn)
+    return inserted
