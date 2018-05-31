@@ -14,10 +14,19 @@ RPX = r.db("Plugins")
 
 @decorator
 def wrap_rethink_errors(f, *args, **kwargs):
+    """
+    Wraps rethinkdb specific errors as builtin/Brain errors
+
+    :param f: <function> to call
+    :param args:  <tuple> positional arguments
+    :param kwargs: <dict> keyword arguments
+    :return: inherits from the called function
+    """
     try:
         return f(*args, **kwargs)
     except (r.errors.ReqlOpFailedError,
-            r.errors.ReqlError) as e:
+            r.errors.ReqlError,
+            r.errors.ReqlDriverError) as e:
         raise ValueError(str(e))
 
 @decorator
@@ -189,6 +198,7 @@ def create_plugin(plugin_name, conn=None):
                          ).run(conn)
     return True
 
+@wrap_rethink_errors
 @wrap_connection
 def advertise_plugin_commands(plugin_name, commands,
                               verify_commands=False,

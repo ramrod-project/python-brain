@@ -84,6 +84,10 @@ def connect(host=None,
         if not connection:
             sleep(0.5)
     if not connection:
-        raise BrainNotReady("BrainNotReady: Tried {} times at {} second max timeout".format(tries, timeout))
+        raise BrainNotReady(
+            "Tried ({}:{}) {} times at {} second max timeout".format(host,
+                                                                     port,
+                                                                     tries,
+                                                                     timeout))
     return connection
 
