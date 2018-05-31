@@ -100,9 +100,6 @@ def get_output_content(job_id, max_size=1024, conn=None):
             content = ""
     return content
 
-
-
-    return query_specific_plugin_name
 def insert_new_target(plugin_name, location_num,
                       port_num=0, optional="",
                       verify_target=True, conn=None):
