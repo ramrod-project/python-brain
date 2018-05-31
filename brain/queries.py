@@ -1,15 +1,24 @@
 """
 assortment of wrapped queries
 """
-from .brain_pb2 import Jobs, Target
+from .brain_pb2 import Jobs, Target, Commands
 from .checks import verify
 from .connection import rethinkdb as r
 from .connection import connect
+from decorator import decorator
 
 RBT = r.db("Brain").table("Targets")
 RBJ = r.db("Brain").table("Jobs")
 RBO = r.db("Brain").table("Output")
 RPX = r.db("Plugins")
+
+@decorator
+def wrap_rethink_errors(f, *args, **kwargs):
+    try:
+        f(*args, **kwargs)
+    except (r.errors.ReqlOpFailedError,
+            r.errors.ReqlError):
+        raise ValueError("Invalid argument to {}".format(f.__name__))
 
 def get_targets(conn=None):
     """
@@ -31,7 +40,7 @@ def get_targets_by_plugin(plugin_name, conn=None):
     """
     conn = conn if conn else connect()
     targets = RBT
-    results = targets.run(conn).filter({"PluginName":plugin_name})
+    results = targets.filter({"PluginName":plugin_name}).run(conn)
     for item in results:
         yield item
 
@@ -138,3 +147,50 @@ def insert_jobs(jobs, verify_jobs=True, conn=None):
         raise ValueError("Invalid Jobs")
     inserted = RBJ.insert(jobs).run(conn)
     return inserted
+
+def plugin_exists(plugin_name, conn=None):
+    """
+
+    :param plugin_name:
+    :param conn:
+    :return: <bool> whether plugin exists
+    """
+    conn = conn if conn else connect()
+    return plugin_name in RPX.table_list().run(conn)
+
+def create_plugin(plugin_name, conn=None):
+    """
+    Creates a new plugin
+
+    :param plugin_name: <str>
+    :param conn:
+    :return: <bool> successfully inserted
+    """
+    conn = conn if conn else connect()
+    if not plugin_exists(plugin_name, conn=conn):
+        RPX.table_create(plugin_name,
+                         primary_key="CommandName"
+                         ).run(conn)
+    return True
+
+def advertise_plugin_commands(plugin_name, commands,
+                              verify_commands=False,
+                              conn=None):
+    """
+
+    :param plugin_name:
+    :param commands:
+    :param verify_commands:
+    :param conn:
+    :return:
+    """
+    assert isinstance(commands, list)
+    conn = conn if conn else connect()
+    if verify_commands and not verify({"Commands":commands},
+                                      Commands()):
+        raise ValueError("Invalid Commands")
+    RPX.table(plugin_name).insert(commands,
+                                  conflict="update"
+                                  ).run(conn)
+
+
