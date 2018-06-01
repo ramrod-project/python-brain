@@ -43,6 +43,7 @@ def brain_post(connection, requirements=SELF_TEST):
     :param requirements:<dict> keys=Required Databases, key-values=Required Tables in each database
     :return: <rethinkdb.net.DefaultConnection> if verified
     """
+    assert isinstance(connection, DefaultConnection)
     remote_dbs = set([x for x in rethinkdb.db_list().run(connection)])
     for database in requirements:
         assert (database in remote_dbs), "database {} must exist".format(database)

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from setuptools import setup, find_packages
 
-VERSION = "0.1.20"
+VERSION = "0.1.21"
 
 setup(
     name="ramrodbrain",
