@@ -41,14 +41,15 @@ def brain_post(connection, requirements=SELF_TEST):
 
     :param connection:  <rethinkdb.net.DefaultConnection>
     :param requirements:<dict> keys=Required Databases, key-values=Required Tables in each database
-    :return: <None>
+    :return: <rethinkdb.net.DefaultConnection> if verified
     """
-    remote_dbs = [x for x in rethinkdb.db_list().run(connection)]
+    remote_dbs = set([x for x in rethinkdb.db_list().run(connection)])
     for database in requirements:
         assert (database in remote_dbs), "database {} must exist".format(database)
         remote_tables = frozenset([x for x in rethinkdb.db(database).table_list().run(connection)])
         for table in requirements[database]:
             assert (table in remote_tables), "{} must exist in {}".format(table, database)
+    return connection
 
 def connect(host=None,
             port=rethinkdb.DEFAULT_PORT,
@@ -72,15 +73,7 @@ def connect(host=None,
     time_quit = time() + timeout
     while not connection and time() <= time_quit:
         tries += 1
-        try:
-            connection = rethinkdb.connect(host,
-                                           port,
-                                           timeout=timeout/3,
-                                           **kwargs)
-            if verify:
-                brain_post(connection)
-        except (rethinkdb.errors.ReqlDriverError, AssertionError):
-            connection = None
+        connection = _attempt_connect(host, port, timeout/3, verify, **kwargs)
         if not connection:
             sleep(0.5)
     if not connection:
@@ -91,3 +84,24 @@ def connect(host=None,
                                                                      timeout))
     return connection
 
+
+def _attempt_connect(host, port, timeout, verify, **kwargs):
+    """
+    Internal function to attempt
+    :param host: <str> "localhost" or IPAddress
+    :param port: <int>
+    :param timeout: <int>
+    :param verify: <bool>
+    :param kwargs: <**dict> rethinkdb keyword args
+    :return: <connection> or <NoneType>
+    """
+    try:
+        connection = rethinkdb.connect(host,
+                                       port,
+                                       timeout=timeout,
+                                       **kwargs)
+        if verify:
+            brain_post(connection)
+    except (rethinkdb.errors.ReqlDriverError, AssertionError):
+        connection = None
+    return connection
