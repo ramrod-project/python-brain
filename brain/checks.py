@@ -2,6 +2,7 @@
 
 from google.protobuf.message import EncodeError
 import dict_to_protobuf #this lib allows extra keys
+from .connection import validate_brain
 dict_to_protobuf.l.setLevel("ERROR")
 
 def verify(value, msg):

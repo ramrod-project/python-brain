@@ -1,9 +1,11 @@
-from time import sleep
+from time import sleep, time
+from uuid import uuid4
 import rethinkdb
-from .environment import check_stage_env
+from decorator import decorator
 from rethinkdb.net import DefaultConnection
-from time import time
+from .environment import check_stage_env
 
+#Recursive imports at bottom of file
 
 BRAIN_DB = "Brain"
 AUDIT_DB = "Audit"
@@ -20,7 +22,26 @@ DEFAULT_HOSTS = {"PROD": "rethinkdb",
                  "DEV": "localhost",
                  "TESTING": "localhost",
                  "": "localhost", #environment not configured, try anyway
-                }
+                 }
+
+@decorator
+def wrap_self_test(f, *args, **kwargs):
+    """
+    should be applied as decorator to functions
+    requiring a SELF_TEST dict
+
+    If the caller does not supply a self_test dict, it supplies one
+
+    :param f: <function>
+    :param args: <tuple> positional arguments
+    :param kwargs: <dict> keyword arguments
+    :return: return value of the called function
+    """
+    if not args[-1]:
+        new_args = list(args)
+        new_args[-1] = SELF_TEST
+        args = tuple(new_args)
+    return f(*args, **kwargs)
 
 
 class BrainNotReady(Exception):
@@ -30,8 +51,22 @@ class BrainNotReady(Exception):
     pass
 
 
+def validate_brain(connection, requirements=None):
+    """
+    Alias to brain_post function
 
-def brain_post(connection, requirements=SELF_TEST):
+    Checks that the brain is appropriately seeded and ready for use.
+
+    Raises AssertionError's if the brain is not ready.
+
+    :param connection:  <rethinkdb.net.DefaultConnection>
+    :param requirements:<dict> keys=Required Databases, key-values=Required Tables in each database
+    :return: <rethinkdb.net.DefaultConnection> if verified
+    """
+    return brain_post(connection, requirements)
+
+@wrap_self_test
+def brain_post(connection, requirements=None):
     """
     Power On Self Test for the brain.
 
@@ -50,6 +85,10 @@ def brain_post(connection, requirements=SELF_TEST):
         remote_tables = frozenset([x for x in rethinkdb.db(database).table_list().run(connection)])
         for table in requirements[database]:
             assert (table in remote_tables), "{} must exist in {}".format(table, database)
+    test_table = "test_table_{}".format(uuid4()).replace("-", "")   # '-' is not valid
+    create_plugin(test_table, connection)
+    RPX.table(test_table).insert({"test": "data"}).run(connection)
+    destroy_plugin(test_table, connection)
     return connection
 
 def connect(host=None,
@@ -103,6 +142,11 @@ def _attempt_connect(host, port, timeout, verify, **kwargs):
                                        **kwargs)
         if verify:
             brain_post(connection)
-    except (rethinkdb.errors.ReqlDriverError, AssertionError):
+    except (rethinkdb.errors.ReqlDriverError,
+            rethinkdb.errors.ReqlOpFailedError,
+            AssertionError):
         connection = None
     return connection
+
+#RecursiveImports
+from .queries import create_plugin, destroy_plugin, RPX

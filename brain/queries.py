@@ -228,6 +228,21 @@ def create_plugin(plugin_name, conn=None):
 
 @wrap_rethink_errors
 @wrap_connection
+def destroy_plugin(plugin_name, conn=None):
+    """
+    Creates a new plugin
+
+    :param plugin_name: <str>
+    :param conn:
+    :return: <bool> successfully inserted
+    """
+    if plugin_exists(plugin_name, conn=conn):
+        RPX.table_drop(plugin_name,
+                       ).run(conn)
+    return True
+
+@wrap_rethink_errors
+@wrap_connection
 def advertise_plugin_commands(plugin_name, commands,
                               verify_commands=False,
                               conn=None):
