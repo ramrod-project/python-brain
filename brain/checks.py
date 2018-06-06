@@ -46,7 +46,8 @@ def special_target_typecheck(value):
     :return: <bool>
     """
     result = True
-    result &= isinstance(value.get("Optional", None), dict)
+    # if key:Optional exists, it must be a dict object
+    result &= isinstance(value.get("Optional", dict()), dict)
     return result
 
 
