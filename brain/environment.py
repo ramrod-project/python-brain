@@ -50,7 +50,7 @@ def check_prod_env():
 
     :return: <bool>
     """
-    return True if check_stage_env() == "PROD" else False
+    return check_stage_env() == "PROD"
 
 def check_dev_env():
     """

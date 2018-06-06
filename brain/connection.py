@@ -79,10 +79,10 @@ def brain_post(connection, requirements=None):
     :return: <rethinkdb.net.DefaultConnection> if verified
     """
     assert isinstance(connection, DefaultConnection)
-    remote_dbs = set([x for x in rethinkdb.db_list().run(connection)])
+    remote_dbs = set(rethinkdb.db_list().run(connection))
     for database in requirements:
         assert (database in remote_dbs), "database {} must exist".format(database)
-        remote_tables = frozenset([x for x in rethinkdb.db(database).table_list().run(connection)])
+        remote_tables = frozenset(rethinkdb.db(database).table_list().run(connection))
         for table in requirements[database]:
             assert (table in remote_tables), "{} must exist in {}".format(table, database)
     test_table = "test_table_{}".format(uuid4()).replace("-", "")   # '-' is not valid
