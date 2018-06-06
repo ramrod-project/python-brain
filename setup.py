@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from setuptools import setup, find_packages
 
-VERSION = "0.1.24"
+VERSION = "0.1.25"
 
 setup(
     name="ramrodbrain",
@@ -17,7 +17,7 @@ setup(
     install_requires=[
         'rethinkdb',
         "protobuf",
-        "dict-to-protobuf"
+        "dict-to-protobuf",
         "decorator"
     ],
     classifiers=[
