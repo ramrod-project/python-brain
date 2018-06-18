@@ -1,8 +1,12 @@
+"""
+module functions to establish a brain connection
+"""
+
 from time import sleep, time
 from uuid import uuid4
 import rethinkdb
-from decorator import decorator
 from rethinkdb.net import DefaultConnection
+from decorator import decorator
 from .environment import check_stage_env
 
 #Recursive imports at bottom of file
@@ -21,11 +25,11 @@ DEFAULT_HOSTS = {"PROD": "rethinkdb",
                  "QA": "rethinkdb",
                  "DEV": "localhost",
                  "TESTING": "localhost",
-                 "": "localhost", #environment not configured, try anyway
-                 }
+                 "": "localhost"}  # environment not configured, try anyway
+
 
 @decorator
-def wrap_self_test(f, *args, **kwargs):
+def wrap_self_test(func_, *args, **kwargs):
     """
     should be applied as decorator to functions
     requiring a SELF_TEST dict
@@ -41,7 +45,7 @@ def wrap_self_test(f, *args, **kwargs):
         new_args = list(args)
         new_args[-1] = SELF_TEST
         args = tuple(new_args)
-    return f(*args, **kwargs)
+    return func_(*args, **kwargs)
 
 
 class BrainNotReady(Exception):
@@ -49,6 +53,58 @@ class BrainNotReady(Exception):
     Simple exception to identify that the brain is not ready for use at this time
     """
     pass
+
+
+def validate_get_dbs(connection):
+    """
+    validates the connection object is capable of read access to rethink
+
+    should be at least one test database by default
+
+    :param connection: <rethinkdb.net.DefaultConnection>
+    :return: <set> list of databases
+    :raises: ReqlDriverError AssertionError
+    """
+    remote_dbs = set(rethinkdb.db_list().run(connection))
+    assert remote_dbs
+    return remote_dbs
+
+
+def validate_brain_requirements(connection, remote_dbs, requirements):
+    """
+    validates the rethinkdb has the 'correct' databases and tables
+    should get remote_dbs from brain.connection.validate_get_dbs
+
+    :param connection: <rethinkdb.net.DefaultConnection>
+    :param remote_dbs: <set> database names present in remote database
+    :param requirements: <dict> example(brain.connection.SELF_TEST)
+    :return: <bool> True
+    :raises: AssertionError or Reql*Error
+    """
+    for database in requirements:
+        assert (database in remote_dbs), "database {} must exist".format(database)
+        remote_tables = frozenset(rethinkdb.db(database).table_list().run(connection))
+        for table in requirements[database]:
+            assert (table in remote_tables), "{} must exist in {}".format(table, database)
+    return True
+
+
+def validate_write_access(connection):
+    """
+    verifies connection can write to rethink by:
+        1. Creating a test table
+        2. Adding a document to that table
+        3. destroying the test table
+
+    :param connection: <rethinkdb.net.DefaultConnection>
+    :return: <bool> True
+    :raises: Reql*Error
+    """
+    test_table = "test_table_{}".format(uuid4()).replace("-", "")   # '-' is not valid
+    create_plugin(test_table, connection)
+    RPX.table(test_table).insert({"test": "data"}).run(connection)
+    destroy_plugin(test_table, connection)
+    return True
 
 
 def validate_brain(connection, requirements=None):
@@ -65,6 +121,7 @@ def validate_brain(connection, requirements=None):
     """
     return brain_post(connection, requirements)
 
+
 @wrap_self_test
 def brain_post(connection, requirements=None):
     """
@@ -79,17 +136,11 @@ def brain_post(connection, requirements=None):
     :return: <rethinkdb.net.DefaultConnection> if verified
     """
     assert isinstance(connection, DefaultConnection)
-    remote_dbs = set(rethinkdb.db_list().run(connection))
-    for database in requirements:
-        assert (database in remote_dbs), "database {} must exist".format(database)
-        remote_tables = frozenset(rethinkdb.db(database).table_list().run(connection))
-        for table in requirements[database]:
-            assert (table in remote_tables), "{} must exist in {}".format(table, database)
-    test_table = "test_table_{}".format(uuid4()).replace("-", "")   # '-' is not valid
-    create_plugin(test_table, connection)
-    RPX.table(test_table).insert({"test": "data"}).run(connection)
-    destroy_plugin(test_table, connection)
+    remote_dbs = validate_get_dbs(connection)
+    assert validate_brain_requirements(connection, remote_dbs, requirements)
+    assert validate_write_access(connection)
     return connection
+
 
 def connect(host=None,
             port=rethinkdb.DEFAULT_PORT,

@@ -1,0 +1,76 @@
+package brain;
+
+
+//protoc -I=. --python_out=brain brain.proto
+
+message Command {
+    optional string id = 1;
+    required string CommandName = 2;
+    required string Tooltip = 3;
+    required bool Output = 4;
+    repeated Input Inputs = 5;
+    repeated Input OptionalInputs = 6;
+
+    message Input {
+        required string Name = 1;
+        required string Type = 2;
+        required string Tooltip = 3;
+        required string Value = 4;
+    }
+}
+message Target {
+    optional string id =1;
+    required string PluginName = 2;
+    required string Location = 3;
+    required string Port = 4;
+}
+message Job {
+    optional string id = 1;
+    required Target JobTarget = 2;
+    required string Status = 3;
+    required int32 StartTime = 4;
+    required Command JobCommand = 5;
+}
+message Output {
+    optional string id = 1;
+    required Job OutputJob = 2;
+    required string Content = 3;
+}
+message JobAudit {
+    optional string id = 1;
+    required float change_time = 2;
+    required Job old_val = 3;
+    required Job new_val = 4;
+}
+message TargetAudit {
+    optional string id = 1;
+    required float change_time = 2;
+    required Target old_val = 3;
+    required Target new_val = 4;
+}
+message OutputAudit {
+    optional string id = 1;
+    required float ts = 2;
+    required Output old_val = 3;
+    required Output new_val = 4;
+}
+
+message Audit {
+    optional string id = 1;
+    oneof record {
+        JobAudit Job = 2;
+        TargetAudit Target =  3;
+        OutputAudit Output = 4;
+    }
+}
+message Targets {
+    repeated Target Targets =1;
+}
+message Jobs {
+    repeated Job Jobs = 1;
+}
+message Commands {
+    repeated Command Commands = 1;
+}
+
+

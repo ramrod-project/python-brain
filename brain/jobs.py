@@ -7,6 +7,8 @@ from .queries import insert_jobs, is_job_done, get_next_job
 from .checks import verify
 
 BEGIN = ""
+INVALID = "Invalid"
+VALID = "Valid"
 READY = "Ready"
 STOP = "Stopped"
 PENDING = "Pending"
@@ -45,9 +47,19 @@ class InvalidState(JobsError):
 
 STATES = {BEGIN: {SUCCESS: READY,
                   FAILURE: ERROR,
-                  TRANSITION: frozenset([READY,
+                  TRANSITION: frozenset([VALID,
+                                         READY,
+                                         INVALID,
                                          ERROR,
                                          STOP])},
+          INVALID: {SUCCESS: VALID,
+                    FAILURE: None,
+                    TRANSITION: frozenset([VALID])},
+          VALID: {SUCCESS: READY,
+                  FAILURE: INVALID,
+                  TRANSITION: frozenset([READY,
+                                         WAITING,
+                                         INVALID])},
           READY: {SUCCESS: PENDING,
                   FAILURE: ERROR,
                   TRANSITION: frozenset([STOP,
@@ -76,8 +88,8 @@ STATES = {BEGIN: {SUCCESS: READY,
                   FAILURE: ERROR,
                   TRANSITION: frozenset([DONE,
                                          ERROR,
-                                         STOP])},
-         }
+                                         STOP])}
+          }
 
 
 @decorator
@@ -95,6 +107,7 @@ def wrap_good_state(f, *args, **kwargs):
         raise InvalidState("{} is not a valid state".format(args[0]))
     return f(*args, **kwargs)
 
+
 def verify_state(state):
     """
     Verifies a state is acceptable
@@ -103,6 +116,7 @@ def verify_state(state):
     :return: <bool>
     """
     return state in STATES
+
 
 @wrap_good_state
 def transition_success(state):
@@ -114,6 +128,7 @@ def transition_success(state):
     """
     return STATES[state][SUCCESS]
 
+
 @wrap_good_state
 def transition_fail(state):
     """
@@ -123,6 +138,7 @@ def transition_fail(state):
     :return: <str> or None
     """
     return STATES[state][FAILURE]
+
 
 @wrap_good_state
 def transition(prior_state, next_state):
@@ -135,7 +151,7 @@ def transition(prior_state, next_state):
     :param next_state: <str>
     :return: <str>
     """
-    if  next_state not in STATES[prior_state][TRANSITION]:
+    if next_state not in STATES[prior_state][TRANSITION]:
         acceptable = STATES[prior_state][TRANSITION]
         err = "cannot {}->{} may only {}->{}".format(prior_state,
                                                      next_state,
@@ -143,6 +159,7 @@ def transition(prior_state, next_state):
                                                      acceptable)
         raise InvalidStateTransition(err)
     return next_state
+
 
 def verify_job(job):
     """
