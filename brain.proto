@@ -63,6 +63,14 @@ message Audit {
         OutputAudit Output = 4;
     }
 }
+
+message Binary {
+    optional string id = 1;
+    required string Name = 2;
+    required string ContentType = 3;
+    required bytes Content = 4;
+}
+
 message Targets {
     repeated Target Targets =1;
 }
