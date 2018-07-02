@@ -1,12 +1,43 @@
 """
 assortment of wrapped queries
 """
-from ..brain_pb2 import Jobs, Target, Commands
+from ..brain_pb2 import Jobs, Target, Commands, Plugin, Port
 from ..checks import verify
+from ..connection import rethinkdb as r
 from .decorators import wrap_connection
 from .decorators import wrap_rethink_errors
-from . import RPX, RBT, RBJ
-from .reads import plugin_exists
+from . import RPX, RBT, RBJ, RPC, RPP
+from .reads import plugin_exists, get_plugin_by_name_controller, get_ports_by_ip_controller
+
+
+def _check_port_conflict(port_data,
+                         existing):
+    for interface in existing:
+        common_tcp = list(set(port_data["TCPPorts"]) &
+                      set(interface["TCPPorts"]))
+        if common_tcp != []:
+            return {
+                "errors": 1,
+                "first_error": "TCP Port conflict(s): \
+                {} in use on {}"
+                .format(
+                    common_tcp,
+                    interface["Address"]
+                )
+            }
+        common_udp = list(set(port_data["UDPPorts"]) &
+                      set(interface["UDPPorts"]))
+        if common_udp != []:
+            return {
+                "errors": 1,
+                "first_error": "UDP Port conflict(s): \
+                {} in use on {}"
+                .format(
+                    common_udp,
+                    interface["Address"]
+                )
+            }
+    return None
 
 
 @wrap_rethink_errors
@@ -115,4 +146,114 @@ def advertise_plugin_commands(plugin_name, commands,
     success = RPX.table(plugin_name).insert(commands,
                                             conflict="update"
                                             ).run(conn)
+    return success
+
+
+@wrap_rethink_errors
+@wrap_connection
+def create_plugin_controller(plugin_data,
+                              verify_commands=False,
+                              conn=None):
+    """
+
+    :param plugin_data: <dict> dict matching Plugin()
+    :param verify_commands: <bool>
+    :param conn: <rethinkdb.DefaultConnection>
+    :return: <dict> rethinkdb insert response value
+    """
+    assert isinstance(plugin_data, dict)
+    if verify_commands and not verify({"Plugin": plugin_data},
+                                      Plugin()):
+        raise ValueError("Invalid Plugin entry")
+    current = get_plugin_by_name_controller(
+        plugin_data["Name"],
+        conn
+    )
+    try:
+        current.next()
+        return {
+            "errors": 1,
+            "first_error": "".join([
+                "Plugin ",
+                plugin_data["Name"],
+                " exists!"
+            ])
+        }
+    except r.ReqlCursorEmpty:
+        pass
+    success = RPC.insert(plugin_data,
+                         conflict="update"
+                         ).run(conn)
+    return success
+
+
+@wrap_rethink_errors
+@wrap_connection
+def create_port_controller(port_data,
+                           verify_port=False,
+                           conn=None):
+    """
+
+    :param port_data: <dict> dict matching Port()
+    :param verify_port: <bool>
+    :param conn: <rethinkdb.DefaultConnection>
+    :return: <dict> rethinkdb insert response value
+    """
+    assert isinstance(port_data, dict)
+    if verify_port and not verify({"Port": port_data},
+                                      Port()):
+        raise ValueError("Invalid Port entry")
+    existing = get_ports_by_ip_controller(port_data["Address"])
+    conflicts = _check_port_conflict(port_data, existing)
+    if conflicts:
+        return conflicts
+
+    interface_existing = None
+    for interface in existing:
+        if interface["Address"] == port_data["Address"]:
+            interface_existing = interface
+    if not interface_existing:
+        success = RPP.insert(
+            port_data,
+            conflict="update"
+        ).run(conn)
+    else:
+        interface_existing["TCPPorts"].extend(port_data["TCPPorts"])
+        interface_existing["UDPPorts"].extend(port_data["UDPPorts"])
+        success = RPP.get(interface_existing["id"]).update({
+            "TCPPorts": interface_existing["TCPPorts"],
+            "UDPPorts": interface_existing["UDPPorts"]
+        }).run(conn)
+    return success
+
+
+@wrap_rethink_errors
+@wrap_connection
+def update_plugin_controller(plugin_data,
+                             verify_plugin=False,
+                             conn=None):
+    """
+
+    :param plugin_data: <dict> dict matching Plugin()
+    :param verify_commands: <bool>
+    :param conn: <rethinkdb.DefaultConnection>
+    :return: <dict> rethinkdb update response value
+    """
+    assert isinstance(plugin_data, dict)
+    if verify_plugin and not verify({"Plugin": plugin_data},
+                                      Plugin()):
+        raise ValueError("Invalid Plugin entry")
+    current = get_plugin_by_name_controller(
+        plugin_data["Name"],
+        conn
+    )
+    update_id = None
+    try:
+        update_id = current.next()["id"]
+    except r.ReqlCursorEmpty:
+        return {
+            "errors": 1,
+            "first_error": "Cannot update non-existent plugin!"
+        }
+    success = RPC.get(update_id).update(plugin_data).run(conn)
     return success
