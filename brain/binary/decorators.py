@@ -1,10 +1,9 @@
 """
 decorators fro the binary module
 """
-
-import magic
 from decorator import decorator
 from .. import r
+# import magic at bottom of file
 
 BINARY = r.binary
 PRIMARY_FIELD = "Name"
@@ -27,6 +26,7 @@ def wrap_name_to_id(func_, *args, **kwargs):
     args[0][PRIMARY_KEY] = args[0].get(PRIMARY_FIELD, "")
     return func_(*args, **kwargs)
 
+
 @decorator
 def wrap_guess_content_type(func_, *args, **kwargs):
     """
@@ -37,12 +37,12 @@ def wrap_guess_content_type(func_, *args, **kwargs):
     :return:
     """
     assert isinstance(args[0], dict)
-    if not args[0].get(CONTENTTYPE_FIELD, None) and magic:
+    if not args[0].get(CONTENTTYPE_FIELD, None):
         content = args[0].get(CONTENT_FIELD, b"")
         try:
             args[0][CONTENTTYPE_FIELD] = magic.from_buffer(content)
         except magic.MagicException:  # pragma: no cover
-            args[0][CONTENTTYPE_FIELD] = "data"
+            args[0][CONTENTTYPE_FIELD] = MockMagic.DEFAULT_MAGIC
     return func_(*args, **kwargs)
 
 
@@ -62,3 +62,20 @@ def wrap_content_as_binary_if_needed(func_, *args, **kwargs):
     except AttributeError:  # pragma: no cover
         pass  # toss in the object as string
     return func_(*args, **kwargs)
+
+
+class MockMagic(object):  # pragma: no cover
+    DEFAULT_MAGIC = "data"
+
+    class MagicException(Exception):  # pragma: no cover
+        pass
+
+    @staticmethod
+    def from_buffer(content=None):  # pragma: no cover
+        return MockMagic.DEFAULT_MAGIC
+
+
+try:
+    import magic
+except ImportError:  # pragma: no cover
+    magic = MockMagic

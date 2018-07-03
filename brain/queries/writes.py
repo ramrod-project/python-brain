@@ -203,11 +203,10 @@ def create_port_controller(port_data,
     if verify_port and not verify({"Port": port_data},
                                       Port()):
         raise ValueError("Invalid Port entry")
-    existing = get_ports_by_ip_controller(port_data["Address"])
+    existing = list(get_ports_by_ip_controller(port_data["Address"]))
     conflicts = _check_port_conflict(port_data, existing)
     if conflicts:
         return conflicts
-
     interface_existing = None
     for interface in existing:
         if interface["Address"] == port_data["Address"]:
@@ -218,8 +217,8 @@ def create_port_controller(port_data,
             conflict="update"
         ).run(conn)
     else:
-        interface_existing["TCPPorts"].extend(port_data["TCPPorts"])
-        interface_existing["UDPPorts"].extend(port_data["UDPPorts"])
+        interface_existing["TCPPorts"] = list(set(port_data["TCPPorts"] + interface_existing["TCPPorts"]))
+        interface_existing["UDPPorts"] = list(set(port_data["UDPPorts"] + interface_existing["UDPPorts"]))
         success = RPP.get(interface_existing["id"]).update({
             "TCPPorts": interface_existing["TCPPorts"],
             "UDPPorts": interface_existing["UDPPorts"]
