@@ -69,6 +69,16 @@ class NoStat(c_stat):  # pragma: no cover
                                                           'st_ino'))
 
 
+class BrainStoreConfig(object):
+    def __init__(self,
+                 read_only=READ_ONLY,
+                 allow_list=ALLOW_LIST_DIR,
+                 allow_remove=ALLOW_REMOVE):
+        self.read_only = read_only
+        self.allow_list = allow_list
+        self.allow_remove = allow_remove
+
+
 class BrainStore(Operations):
     """
     read only filesystem
@@ -76,10 +86,14 @@ class BrainStore(Operations):
        and
     implement the create/write functions to be r/w
     """
-    def __init__(self):
+    def __init__(self, config=None):
         self.cache = dict()
         self.attr = defaultdict(dict)
         self.attr_lock = Lock()
+        if isinstance(config, BrainStoreConfig):
+            self.config = config
+        else:
+            self.config = BrainStoreConfig()
 
     def read(self, path, size, offset, fh):  # pragma: no cover
         # print("read {}".format(path))
@@ -87,7 +101,7 @@ class BrainStore(Operations):
 
     def readdir(self, path, fh):  # pragma: no cover
         # print("readdir {}".format(path))
-        return GET_DIR + list_dir() if ALLOW_LIST_DIR else []
+        return GET_DIR + list_dir() if self.config.allow_list else []
 
     def _getattr_root(self, base):  # pragma: no cover
         base.st_mode = int(stat.S_IFDIR | OBJ_PERMISSION)
@@ -97,7 +111,7 @@ class BrainStore(Operations):
     def _getattr_pull_file_to_cache(self, base, path):  # pragma: no cover
         filename = path.strip("/")
         brain_data = get(filename) or {}
-        if not brain_data and not READ_ONLY:
+        if not brain_data and not self.config.read_only:
             raise FuseOSError(ENOENT)
         buf = brain_data.get(CONTENT_FIELD, b"")
         base.st_mode = stat.S_IFREG | OBJ_PERMISSION
@@ -162,7 +176,8 @@ class BrainStore(Operations):
             if path in self.attr:
                 del self.cache[path]
                 del self.attr[path]
-                if ALLOW_REMOVE:
+                if self.config.allow_remove and \
+                        not self.config.read_only:
                     delete(path.strip("/"))
 
     def _release_upload_to_brain(self, path):  # pragma: no cover
@@ -203,13 +218,16 @@ class BrainStore(Operations):
                 del self.cache[path]
 
 
-def start_filesystem(mountpoint):  # pragma: no cover
+def start_filesystem(mountpoint,
+                     config=None):  # pragma: no cover
     """
     prgramatically mount this filesystem to some mount point
     :param mountpoint:
     :return:
     """
     if has_fuse:
-        FUSE(BrainStore(), mountpoint, foreground=True)
+        if not config:
+            config = BrainStoreConfig()
+        FUSE(BrainStore(config), mountpoint, foreground=True)
     else:
         raise ImportError(err_str)
