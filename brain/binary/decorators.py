@@ -59,7 +59,7 @@ def wrap_content_as_binary_if_needed(func_, *args, **kwargs):
     assert isinstance(args[0], dict)
     try:
         args[0][CONTENT_FIELD] = BINARY(args[0].get(CONTENT_FIELD, b""))
-    except AttributeError:  # pragma: no cover
+    except (r.errors.ReqlDriverCompileError, AttributeError):  # pragma: no cover
         pass  # toss in the object as string
     return func_(*args, **kwargs)
 
