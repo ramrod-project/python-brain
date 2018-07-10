@@ -10,6 +10,7 @@ PRIMARY_FIELD = "Name"
 PRIMARY_KEY = "id"
 CONTENT_FIELD = "Content"
 CONTENTTYPE_FIELD = "ContentType"
+TIMESTAMP_FIELD = "Timestamp"
 
 
 @decorator

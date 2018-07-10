@@ -65,10 +65,10 @@ message Audit {
 }
 
 message Binary {
-    optional string id = 1;
     required string Name = 2;
-    required string ContentType = 3;
-    required bytes Content = 4;
+    required float Timestamp = 3;
+    required string ContentType = 4;
+    required bytes Content = 5;
 }
 
 message Targets {

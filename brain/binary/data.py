@@ -2,6 +2,7 @@
 functions related to moving binary objects in/out of Brain.Files
 """
 
+from time import time
 from .. import r
 from ..queries.decorators import wrap_connection, wrap_rethink_errors
 from ..queries.decorators import wrap_connection_reconnect_test
@@ -10,7 +11,7 @@ from ..brain_pb2 import Binary
 from ..queries import RBF
 from .decorators import wrap_name_to_id, wrap_guess_content_type
 from .decorators import wrap_content_as_binary_if_needed
-from .decorators import PRIMARY_FIELD, CONTENT_FIELD
+from .decorators import PRIMARY_FIELD, CONTENT_FIELD, TIMESTAMP_FIELD
 
 BINARY = r.binary
 
@@ -46,7 +47,8 @@ def put_buffer(filename, content, conn=None):
     :return: <dict>
     """
     obj_dict = {PRIMARY_FIELD: filename,
-                CONTENT_FIELD: content}
+                CONTENT_FIELD: content,
+                TIMESTAMP_FIELD: time()}
     return put(obj_dict, conn=conn)
 
 
