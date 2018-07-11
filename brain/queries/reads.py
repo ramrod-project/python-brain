@@ -78,6 +78,12 @@ def get_plugin_command(plugin_name, command_name, conn=None):
 
 @wrap_rethink_errors
 @wrap_connection
+def get_job_status(job_id, conn=None):
+    job = RBJ.get(job_id).pluck("Status").run(conn)
+    return job["Status"]
+
+@wrap_rethink_errors
+@wrap_connection
 def is_job_done(job_id, conn=None):
     """
     is_job_done function checks to if Brain.Jobs Status is 'Done'
@@ -167,6 +173,19 @@ def get_next_job(plugin_name,
             continue
         return job
     return None
+
+
+@wrap_rethink_errors
+@wrap_connection
+def get_job_by_id(job_id, conn=None):
+    """returns the job with the given id
+
+    :param job_id: <str> id of the job
+    :param conn: <rethinkdb.DefaultConnection>
+    :return: <dict> job with the given id
+    """
+    job = RBJ.get(job_id).run(conn)
+    return job
 
 
 @wrap_rethink_errors

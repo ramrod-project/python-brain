@@ -6,9 +6,12 @@ from ..checks import verify
 from ..connection import rethinkdb as r
 from .decorators import wrap_connection
 from .decorators import wrap_rethink_errors
-from . import RPX, RBT, RBJ, RPC, RPP
-from .reads import plugin_exists, get_plugin_by_name_controller, get_ports_by_ip_controller
+from . import RPX, RBT, RBJ, RPC, RPP, RBO
+from .reads import plugin_exists, get_plugin_by_name_controller, get_ports_by_ip_controller, get_job_by_id
 
+VALID_STATES = frozenset([
+        "Ready", "Pending", "Done", "Error", "Stopped", "Waiting", "Active"
+    ])
 
 def _check_port_conflict(port_data,
                          existing):
@@ -91,6 +94,46 @@ def insert_jobs(jobs, verify_jobs=True, conn=None):
         raise ValueError("Invalid Jobs")
     inserted = RBJ.insert(jobs).run(conn)
     return inserted
+
+@wrap_rethink_errors
+@wrap_connection
+def update_job_status(job_id, status, conn=None):
+    """Updates a job to a new status
+
+    :param job_id: <str> the id of the job 
+    :param status: <str> new status
+    :param conn: <connection> a database connection (default: {None})
+
+    :return: <bool> whether job was updated successfully
+    """
+    if status not in VALID_STATES:
+        raise ValueError("Invalid status")
+    RBJ.get(job_id).update({
+                "Status": status
+            }).run(conn)
+    RBO.filter(r.row["OutputJob"]["id"] == job_id
+            ).update({
+                "OutputJob": {"Status": status}
+            }).run(conn)
+    return True
+
+
+@wrap_rethink_errors
+@wrap_connection
+def write_output(job_id, content, conn=None):
+    """writes output to the output table
+
+    :param job_id: <str> id of the job
+    :param content: <str> output to write
+    :param conn:
+    """
+    output_job = get_job_by_id(job_id, conn)
+    if output_job is not None:
+        entry = {
+            "OutputJob": output_job,
+            "Content": content
+        }
+        RBO.insert(entry, conflict="replace").run(conn)
 
 
 @wrap_rethink_errors
