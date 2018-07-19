@@ -180,7 +180,7 @@ def get_next_job_by_location(plugin_name, loc, verify_job=False, conn=None):
     job_cur = RBJ.filter(
                 (r.row["JobTarget"]["PluginName"] == plugin_name) &
                 (r.row["Status"] == "Ready") &
-                (r.row["Target"]["Location"] == loc)
+                (r.row["JobTarget"]["Location"] == loc)
             ).order_by('StartTime').limit(1).run(conn)
     for job in job_cur:
         if verify_job and not verify(job, Job()):
@@ -194,7 +194,7 @@ def get_next_job_by_port(plugin_name, port, verify_job=False, conn=None):
     job_cur = RBJ.filter(
                 (r.row["JobTarget"]["PluginName"] == plugin_name) &
                 (r.row["Status"] == "Ready") &
-                (r.row["Target"]["Port"] == port)
+                (r.row["JobTarget"]["Port"] == port)
             ).order_by('StartTime').limit(1).run(conn)
     for job in job_cur:
         if verify_job and not verify(job, Job()):
