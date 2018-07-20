@@ -3,7 +3,6 @@ controls Job related changes
 """
 from decorator import decorator
 from .brain_pb2 import Job, Jobs
-from .queries import insert_jobs, is_job_done, get_next_job
 from .checks import verify
 
 BEGIN = ""
@@ -95,12 +94,11 @@ STATES = {BEGIN: {SUCCESS: READY,
                   FAILURE: ERROR,
                   TRANSITION: frozenset([DONE,
                                          ERROR,
-                                         STOP])}
-          }
+                                         STOP])}}
 
 
 @decorator
-def wrap_good_state(f, *args, **kwargs):
+def wrap_good_state(func_, *args, **kwargs):
     """
     Decorator/Wrapper to verify the input is an acceptable state
     prior to calling a function on it
@@ -112,7 +110,7 @@ def wrap_good_state(f, *args, **kwargs):
     """
     if not verify_state(args[0]):
         raise InvalidState("{} is not a valid state".format(args[0]))
-    return f(*args, **kwargs)
+    return func_(*args, **kwargs)
 
 
 def verify_state(state):

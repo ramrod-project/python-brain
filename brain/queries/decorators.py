@@ -1,14 +1,16 @@
 """
 decorator objects for other functions in the query module
 """
-
+from decorator import decorator
 from ..connection import rethinkdb as r, connect
 from ..connection import validate_get_dbs
-from decorator import decorator
+
 
 WRAP_RETHINK_ERRORS = (r.errors.ReqlOpFailedError,
                        r.errors.ReqlError,
                        r.errors.ReqlDriverError)
+STATUS_FIELD = "Status"
+START_FIELD = "StartTime"
 
 
 @decorator
@@ -23,8 +25,8 @@ def wrap_rethink_errors(func_, *args, **kwargs):
     """
     try:
         return func_(*args, **kwargs)
-    except WRAP_RETHINK_ERRORS as e:
-        raise ValueError(str(e))
+    except WRAP_RETHINK_ERRORS as reql_err:
+        raise ValueError(str(reql_err))
 
 @decorator
 def wrap_rethink_generator_errors(func_, *args, **kwargs):
@@ -38,8 +40,8 @@ def wrap_rethink_generator_errors(func_, *args, **kwargs):
     try:
         for data in func_(*args, **kwargs):
             yield data
-    except WRAP_RETHINK_ERRORS as e:
-        raise ValueError(str(e))
+    except WRAP_RETHINK_ERRORS as reql_err:
+        raise ValueError(str(reql_err))
 
 
 @decorator
