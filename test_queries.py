@@ -10,6 +10,7 @@ from types import GeneratorType
 from .brain import connect, r
 from .brain.connection import DefaultConnection, BrainNotReady
 from .brain import queries
+from copy import deepcopy
 CLIENT = docker.from_env()
 
 
@@ -92,6 +93,16 @@ def rethink():
         if container.name == container_name:
             container.stop()
             break
+
+def is_the_same_job_as(id_job, ref_job):
+    if len(ref_job) == 0:
+        return False
+    same = True
+    for entry in ref_job:
+        if entry not in id_job:
+            same = False
+            break
+    return same
 
 def test_get_targets_empty_noconn(rethink):
     g = queries.get_targets()
@@ -180,7 +191,7 @@ def test_get_capability(rethink):
     assert len(cmds) == 1
     assert cmds[0]["CommandName"] == TEST_CAPABILITY[0]['CommandName']
 
-def test_get_capability(rethink):
+def test_get_capability_2(rethink):
     res = queries.get_plugin_command(TEST_TARGET['PluginName'],
                                      TEST_CAPABILITY[0]['CommandName'])
     assert isinstance(res, dict)
@@ -325,3 +336,45 @@ def test_next_job_already_status_done(rethink):
         queries.RBJ.get(job['id']).update({"Status": "Done"}).run(connect())
     res = queries.get_next_job(TEST_TARGET['PluginName'])
     assert not res
+
+
+def test_get_job_by_id(rethink):
+    response = queries.insert_jobs([TEST_JOB])
+    job_id = response["generated_keys"][0]
+    job = queries.get_job_by_id(job_id, connect())
+    assert is_the_same_job_as(job, TEST_JOB)
+
+def test_get_job_status(rethink):
+    response = queries.insert_jobs([TEST_JOB])
+    job_id = response["generated_keys"][0]
+    assert queries.get_job_status(job_id, connect()) == "Ready"
+
+def test_update_job_status(rethink):
+    response = queries.insert_jobs([TEST_JOB])
+    job_id = response["generated_keys"][0]
+    queries.update_job_status(job_id, "Done", connect())
+    assert queries.is_job_done(job_id, connect())
+
+def test_write_output(rethink):
+    response = queries.insert_jobs([TEST_JOB])
+    job_id = response["generated_keys"][0]
+    content = "Test Output"
+    queries.write_output(job_id, content, connect())
+    output = queries.get_output_content(job_id, conn=connect())
+    assert output == content
+
+def test_get_next_job_by_location(rethink):
+    new_target = deepcopy(TEST_TARGET)
+    new_target["Location"] = "1.2.3.4"
+    new_target["Port"] = "5678"
+    client_job = deepcopy(TEST_JOB)
+    client_job["JobTarget"] = new_target
+    response =  queries.insert_jobs([client_job])
+    assert response["inserted"] == 1
+    assert queries.get_next_job_by_location("TestPlugin", "bad location", conn=connect()) == None
+    result_job = queries.get_next_job_by_location("TestPlugin", new_target["Location"], conn=connect())
+    assert is_the_same_job_as(result_job, client_job)
+
+    assert queries.get_next_job_by_port("TestPlugin", "bad port", conn=connect()) == None
+    result_job = queries.get_next_job_by_port("TestPlugin", new_target["Port"], conn=connect())
+    assert is_the_same_job_as(result_job, client_job)
