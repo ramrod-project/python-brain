@@ -31,24 +31,19 @@ def _check_port_conflict(port_data,
     for interface in existing:
         common_tcp = list(set(port_data["TCPPorts"]) &
                           set(interface["TCPPorts"]))
-        if common_tcp != []:
+        if common_tcp:
             return {
                 "errors": 1,
                 "first_error": "TCP Port conflict(s): \
-                {} in use on {}"
-                    .format(
-                        common_tcp,
-                        interface["Address"]
-                    )
+                {} in use on {}".format(common_tcp, interface["Address"])
             }
         common_udp = list(set(port_data["UDPPorts"]) &
-                      set(interface["UDPPorts"]))
-        if common_udp != []:
+                          set(interface["UDPPorts"]))
+        if common_udp:
             return {
                 "errors": 1,
                 "first_error": "UDP Port conflict(s): \
-                {} in use on {}".format(common_udp,
-                                        interface["Address"])
+                {} in use on {}".format(common_udp, interface["Address"])
             }
     return None
 
@@ -59,13 +54,7 @@ def insert_new_target(plugin_name, location_num,
                       port_num=0, optional="",
                       verify_target=False, conn=None):
     """
-    insert_new_target function gets called when the user's input is validated
-    and inserts a new target to Brain.Targets table.
-    :param plugin_name: <str> user input plugin name
-    :param location_num: <str> user input location number
-    :param port_num: <str> user input port number
-    :param optional: <str> user input optional
-    :return: <dict> rethinkdb insert response value
+    Deprecated - use insert_target
     """
     target = {"PluginName": str(plugin_name),
               "Location": str(location_num),
@@ -121,11 +110,11 @@ def update_job_status(job_id, status, conn=None):
     """
     if status not in VALID_STATES:
         raise ValueError("Invalid status")
-    RBJ.get(job_id).update({"Status": status}).run(conn)
+    job_update = RBJ.get(job_id).update({"Status": status}).run(conn)
     id_filter = (r.row["OutputJob"]["id"] == job_id)
     output_job_status = {"OutputJob": {"Status": status}}
-    RBO.filter(id_filter).update(output_job_status).run(conn)
-    return True
+    output_update = RBO.filter(id_filter).update(output_job_status).run(conn)
+    return {str(RBJ): job_update, str(RBO): output_update}
 
 
 @wrap_rethink_errors
@@ -138,12 +127,14 @@ def write_output(job_id, content, conn=None):
     :param conn:
     """
     output_job = get_job_by_id(job_id, conn)
+    results = {}
     if output_job is not None:
         entry = {
             "OutputJob": output_job,
             "Content": content
         }
-        RBO.insert(entry, conflict="replace").run(conn)
+        results = RBO.insert(entry, conflict="replace").run(conn)
+    return results
 
 
 @wrap_rethink_errors
@@ -154,13 +145,13 @@ def create_plugin(plugin_name, conn=None):
 
     :param plugin_name: <str>
     :param conn:
-    :return: <bool> successfully inserted
+    :return: <dict> rethinkdb response
     """
+    results = {}
     if not plugin_exists(plugin_name, conn=conn):
-        RPX.table_create(plugin_name,
-                         primary_key="CommandName"
-                         ).run(conn)
-    return True
+        results = RPX.table_create(plugin_name,
+                                   primary_key="CommandName").run(conn)
+    return results
 
 
 @wrap_rethink_errors
@@ -171,12 +162,12 @@ def destroy_plugin(plugin_name, conn=None):
 
     :param plugin_name: <str>
     :param conn:
-    :return: <bool> successfully inserted
+    :return: <dict> rethinkdb response
     """
+    results = {}
     if plugin_exists(plugin_name, conn=conn):
-        RPX.table_drop(plugin_name,
-                       ).run(conn)
-    return True
+        results = RPX.table_drop(plugin_name).run(conn)
+    return results
 
 
 @wrap_rethink_errors
@@ -205,10 +196,9 @@ def advertise_plugin_commands(plugin_name, commands,
 @wrap_rethink_errors
 @wrap_connection
 def create_plugin_controller(plugin_data,
-                              verify_commands=False,
-                              conn=None):
+                             verify_commands=False,
+                             conn=None):
     """
-
     :param plugin_data: <dict> dict matching Plugin()
     :param verify_commands: <bool>
     :param conn: <rethinkdb.DefaultConnection>
@@ -234,8 +224,7 @@ def create_plugin_controller(plugin_data,
     except r.ReqlCursorEmpty:
         pass
     success = RPC.insert(plugin_data,
-                         conflict="update"
-                         ).run(conn)
+                         conflict="update").run(conn)
     return success
 
 

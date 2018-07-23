@@ -66,13 +66,24 @@ def wrap_content_as_binary_if_needed(func_, *args, **kwargs):
 
 
 class MockMagic(object):  # pragma: no cover
+    """
+    class to simulate libmagic  if not available
+    """
     DEFAULT_MAGIC = "data"
 
     class MagicException(Exception):  # pragma: no cover
+        """
+        exception mapped to libmagic.MagicExeption
+        """
         pass
 
     @staticmethod
     def from_buffer(content=None):  # pragma: no cover
+        """
+        matches python-magic from_buffer api
+        :param content: <iterable>
+        :return: always returns DEFAULT_MAGIC
+        """
         return MockMagic.DEFAULT_MAGIC
 
 

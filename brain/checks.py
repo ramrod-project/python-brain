@@ -21,7 +21,8 @@ def verify(value, msg):
         True: If valid input
         False: If invalid input
     """
-    return converts_to_proto(value, msg) and \
+    return bool(value) and \
+           converts_to_proto(value, msg) and \
            successfuly_encodes(msg) and \
            special_typechecking(value, msg)
 

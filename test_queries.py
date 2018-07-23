@@ -371,10 +371,20 @@ def test_get_next_job_by_location(rethink):
     client_job["JobTarget"] = new_target
     response =  queries.insert_jobs([client_job])
     assert response["inserted"] == 1
-    assert queries.get_next_job_by_location("TestPlugin", "bad location", conn=connect()) == None
-    result_job = queries.get_next_job_by_location("TestPlugin", new_target["Location"], conn=connect())
+    result_job = queries.get_next_job("TestPlugin", new_target["Location"], conn=connect())
+    assert is_the_same_job_as(result_job, client_job)
+    assert queries.get_next_job("TestPlugin", "bad location", conn=connect()) == None
+    assert is_the_same_job_as(queries.get_next_job("TestPlugin", None, conn=connect()), client_job)
+
+    assert queries.get_next_job("TestPlugin", new_target["Location"], "bad port", conn=connect()) == None
+    with raises(ValueError):
+        queries.get_next_job("TestPlugin", None, new_target["Port"], conn=connect())
+    result_job = queries.get_next_job("TestPlugin", new_target["Location"], new_target["Port"], conn=connect())
     assert is_the_same_job_as(result_job, client_job)
 
-    assert queries.get_next_job_by_port("TestPlugin", "bad port", conn=connect()) == None
-    result_job = queries.get_next_job_by_port("TestPlugin", new_target["Port"], conn=connect())
-    assert is_the_same_job_as(result_job, client_job)
+def test_plugin_list(rethink):
+    queries.create_plugin("ExtraPlugin", connect())
+    queries.create_plugin("BonusPlugin", connect())
+    plugins = queries.plugin_list(connect())
+    assert "ExtraPlugin" in plugins
+    assert "BonusPlugin" in plugins

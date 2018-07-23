@@ -20,6 +20,7 @@ SUCCESS = "success"
 FAILURE = "failure"
 TRANSITION = "transition"
 
+
 class JobsError(Exception):
     """
     Base Jobs exception
@@ -174,3 +175,13 @@ def verify_job(job):
     :return: <bool>
     """
     return verify(job, Job())
+
+
+def verify_jobs(jobs):
+    """
+    verifies list of jobs
+
+    :param job: <list>
+    :return: <bool>
+    """
+    return verify(jobs, Jobs())
