@@ -3,7 +3,7 @@ decorator objects for other functions in the main brain module
 """
 
 from decorator import decorator
-
+from sys import stderr
 
 COMMAND_FIELD = "JobCommand"
 INPUT_FIELD = "Inputs"
@@ -43,4 +43,24 @@ def verify_jobs_args_is_tuple(func_, *args, **kwargs):
     optional_inputs = args[2]
     if not isinstance(inputs, tuple) or not isinstance(optional_inputs, tuple):
         raise ValueError('Input must be a tuple')
+    return func_(*args, **kwargs)
+
+
+@decorator
+def deprecated_function(func_, replacement="(see docs)",
+                        *args, **kwargs):
+    """
+    decorator to annotate deprecated functions
+
+    usage @decorator(replacement="brain.whatever.new_function")
+
+    :param func_: <callable>
+    :param replacement: <str>
+    :param args:  positional arguments
+    :param kwargs:
+    :return: <func_'s return value>
+    """
+    msg = "{} is deprecated, use {}\n".format(func_.__name__,
+                                              replacement)
+    stderr.write(msg)
     return func_(*args, **kwargs)

@@ -4,11 +4,12 @@ assortment of wrapped queries
 from ..brain_pb2 import Job
 from ..checks import verify
 from ..connection import rethinkdb as r
+from ..decorators import deprecated_function
 from .decorators import wrap_connection
 from .decorators import wrap_rethink_generator_errors
 from .decorators import wrap_rethink_errors
 from .decorators import wrap_job_cursor
-from . import RPX, RBT, RBJ, RBO, RPC, RPP
+from . import RPX, RBT, RBJ, RBO
 
 
 @wrap_job_cursor
@@ -241,39 +242,15 @@ def get_job_by_id(job_id, conn=None):
     return job
 
 
-@wrap_rethink_errors
-@wrap_connection
-def get_plugin_by_name_controller(plugin_name,
-                                  conn=None):
-    """
-
-    :param plugin_name: <str> name of plugin
-    :param conn: <rethinkdb.DefaultConnection>
-    :return: <list> rethinkdb cursor
-    """
-    result = RPC.filter({
-        "Name": plugin_name
-    }).run(conn)
-    return result
-
-
-@wrap_rethink_errors
-@wrap_connection
+@deprecated_function(replacement="brain.controller.plugins.get_ports_by_ip")
 def get_ports_by_ip_controller(ip_address,
                                conn=None):
-    """
+    from ..controller.plugins import get_ports_by_ip
+    return get_ports_by_ip(ip_address, conn=conn)
 
-    :param interface_name: <str> name of interface
-    :param conn: <rethinkdb.DefaultConnection>
-    :return: <list> rethinkdb cursor
-    """
-    if ip_address == "":
-        result = RPP.filter({
-            "Address": ip_address
-        }).run(conn)
-    else:
-        result = RPP.filter(
-            (r.row["Address"] == ip_address) |
-            (r.row["Address"] == "")
-        ).run(conn)
-    return result
+
+@deprecated_function(replacement="brain.controller.plugins.get_plugin_by_name")
+def get_plugin_by_name_controller(plugin_name,
+                                  conn=None):
+    from ..controller.plugins import get_plugin_by_name
+    return get_plugin_by_name(plugin_name, conn=conn)
