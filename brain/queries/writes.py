@@ -33,22 +33,6 @@ def _check_port_conflict(port_data,
     return has_port_conflict(port_data, existing)
 
 
-@deprecated_function(replacement="brain.queries.writes.insert_target")
-@wrap_rethink_errors
-@wrap_connection
-def insert_new_target(plugin_name, location_num,
-                      port_num=0, optional="",
-                      verify_target=False, conn=None):
-    """
-    Deprecated - use insert_target
-    """
-    target = {"PluginName": str(plugin_name),
-              "Location": str(location_num),
-              "Port": str(port_num),
-              "Optional": {"init": str(optional)}}
-    return insert_target(target, verify_target, conn)
-
-
 @wrap_rethink_errors
 @wrap_connection
 def insert_target(target, verify_target=False,
