@@ -2,7 +2,7 @@
 manipulate the controller database
 """
 
-from . import plugins
+NAME_KEY = "Name"
 
 
 AVAILABLE = "Available"
@@ -16,6 +16,8 @@ DESIRE_RESTART = "Restart"
 DESIRE_STOP = "Stop"
 DESIRE_NONE = ""
 
+ADDRESS_KEY = "Address"
+DESIRED_STATE_KEY = "DesiredState"
 
 ALLOWED_DESIRED_STATES = frozenset((DESIRE_ACTIVE,
                                     DESIRE_RESTART,
@@ -27,3 +29,5 @@ ALLOWED_STATES = frozenset((ACTIVE,
                             AVAILABLE,
                             STOPPED,
                             RESTARTING))
+
+from . import plugins
