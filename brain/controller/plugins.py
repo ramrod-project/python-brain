@@ -5,52 +5,21 @@ functions specific to the controller
 from ..queries.decorators import wrap_rethink_errors, wrap_connection
 from ..queries import RPC, RPP
 from .. import r
+from ..decorators import deprecated_function
 from ..checks import verify
 from ..brain_pb2 import Plugin, Port
-from .decorators import expect_arg_type
+from .decorators import expect_arg_type, set_plugin_id
+from .helpers import _check_common, has_port_conflict
+from .interfaces import get_ports_by_ip
 from . import DESIRE_ACTIVE, DESIRE_STOP, DESIRE_RESTART
 from . import DESIRED_STATE_KEY, ALLOWED_DESIRED_STATES
-from . import ADDRESS_KEY, NAME_KEY
+from . import ADDRESS_KEY, NAME_KEY, SERVICE_KEY, ID_KEY
 
 
-def _check_common(field, interface, port_data):
-    """
-
-    :param field:
-    :param interface:
-    :param port_data:
-    :return:
-    """
-    response = {}
-    common = list(set(port_data[field]) &
-                  set(interface[field]))
-    if common:
-        msg = "{} conflicts(s): {} in use on {}".format(field,
-                                                        common,
-                                                        interface['Address'])
-        response = {"errors": 1,
-                    "first_error": msg}
-    return response
+DEFAULT_LOOKUP_KEY = "Name"
 
 
-def has_port_conflict(port_data,
-                      existing):
-    """
-
-    :param port_data:
-    :param existing:
-    :return:
-    """
-    for interface in existing:
-        common_tcp = _check_common("TCPPorts", interface, port_data)
-        common_udp = _check_common("UDPPorts", interface, port_data)
-        if common_tcp:
-            return common_tcp
-        elif common_udp:
-            return common_udp
-    return None
-
-
+@deprecated_function(replacement="brain.controller.plugins.find_plugin")
 @wrap_rethink_errors
 @wrap_connection
 def get_plugin_by_name(plugin_name,
@@ -64,6 +33,29 @@ def get_plugin_by_name(plugin_name,
     result = RPC.filter({
         "Name": plugin_name
     }).run(conn)
+    return result
+
+
+@wrap_rethink_errors
+@wrap_connection
+def find_plugin(value,
+                key=DEFAULT_LOOKUP_KEY,
+                conn=None):
+    """
+    get's the plugin matching the key and value
+
+    example: find_plugin("plugin1", "ServiceName") => list of 0 or 1 item
+    example: find_plugin("plugin1", "Name") => list of 0-to-many items
+
+    :param value:
+    :param key: <str> (default "Name")
+    :param conn:
+    :return:
+    """
+    # cast to list to hide rethink internals from caller
+    result = list(RPC.filter({
+        key: value
+    }).run(conn))
     return result
 
 
@@ -88,28 +80,6 @@ def get_names(conn=None):
 
 @wrap_rethink_errors
 @wrap_connection
-def get_ports_by_ip(ip_address,
-                    conn=None):
-    """
-
-    :param ip_address: <str> name of interface
-    :param conn: <rethinkdb.DefaultConnection>
-    :return: <list> rethinkdb cursor
-    """
-    if ip_address == "":
-        result = RPP.filter({
-            "Address": ip_address
-        }).run(conn)
-    else:
-        result = RPP.filter(
-            (r.row["Address"] == ip_address) |
-            (r.row["Address"] == "")
-        ).run(conn)
-    return result
-
-
-@wrap_rethink_errors
-@wrap_connection
 def create_plugin(plugin_data,
                   verify_commands=False,
                   conn=None):
@@ -122,23 +92,20 @@ def create_plugin(plugin_data,
     assert isinstance(plugin_data, dict)
     if verify_commands and not verify(plugin_data, Plugin()):
         raise ValueError("Invalid Plugin entry")
-    current = get_plugin_by_name(
-        plugin_data["Name"],
-        conn=conn
-    )
-    try:
-        current.next()
-        return {
+    current = find_plugin(plugin_data[SERVICE_KEY], SERVICE_KEY, conn)
+    if not current:
+        success = RPC.insert(plugin_data,
+                             conflict="update").run(conn)
+    else:
+        success = {
             "errors": 1,
-            "first_error": "Plugin {} exists!".format(plugin_data['Name'])
-        }
-    except r.ReqlCursorEmpty:
-        pass
-    success = RPC.insert(plugin_data,
-                         conflict="update").run(conn)
+            "first_error": "Duplicate service name exists {}".format(
+                plugin_data[SERVICE_KEY])}
     return success
 
 
+@deprecated_function(replacement=
+                     "brain.controller.interfaces._get_existing_interface")
 def _get_existing_interface(existing, port_data):
     """
 
@@ -146,16 +113,11 @@ def _get_existing_interface(existing, port_data):
     :param port_data:  <dict>
     :return: interface or None
     """
-    interface_existing = None
-    for interface in existing:
-        if interface["Address"] == port_data["Address"]:
-            interface_existing = interface
-    return interface_existing
+    from .interfaces import _get_existing_interface as _new_gei
+    return _new_gei(existing, port_data)
 
 
-@expect_arg_type(expected=(dict, ))
-@wrap_rethink_errors
-@wrap_connection
+@deprecated_function(replacement="brain.controller.interfaces.create_port")
 def create_port(port_data,
                 verify_port=False,
                 conn=None):
@@ -166,45 +128,25 @@ def create_port(port_data,
     :param conn: <rethinkdb.DefaultConnection>
     :return: <dict> rethinkdb insert response value
     """
-    if verify_port and not verify(port_data, Port()):
-        raise ValueError("Invalid Port entry")
-    existing = list(get_ports_by_ip(port_data["Address"], conn=conn))
-    conflicts = has_port_conflict(port_data, existing)
-    if conflicts:
-        return conflicts
-    interface_existing = _get_existing_interface(existing, port_data)
-    if not interface_existing:
-        success = RPP.insert(
-            port_data,
-            conflict="update"
-        ).run(conn)
-    else:
-        combined_tcp = port_data["TCPPorts"] + interface_existing["TCPPorts"]
-        interface_existing["TCPPorts"] = list(set(combined_tcp))
-        combined_udp = port_data["UDPPorts"] + interface_existing["UDPPorts"]
-        interface_existing["UDPPorts"] = list(set(combined_udp))
-        success = RPP.get(interface_existing["id"]).update({
-            "TCPPorts": interface_existing["TCPPorts"],
-            "UDPPorts": interface_existing["UDPPorts"]
-        }).run(conn)
-    return success
+    from .interfaces import create_port as new_create_port
+    return new_create_port(port_data, verify_port=verify_port, conn=conn)
 
 
-@wrap_rethink_errors
-@wrap_connection
+@deprecated_function(replacement="brain.controller.interfaces.get_interfaces")
 def get_interfaces(conn=None):
     """
 
     :param conn:
     :return:
     """
-    res = RPP.pluck([ADDRESS_KEY]).run(conn)
-    return list(set([x[ADDRESS_KEY] for x in res]))  # unique list
+    from .interfaces import get_interfaces as new_get_interfaces
+    return new_get_interfaces(conn=conn)
 
 
 @expect_arg_type(expected=(dict, ))
 @wrap_rethink_errors
 @wrap_connection
+@set_plugin_id
 def update_plugin(plugin_data,
                   verify_plugin=False,
                   conn=None):
@@ -217,15 +159,7 @@ def update_plugin(plugin_data,
     """
     if verify_plugin and not verify(plugin_data, Plugin()):
         raise ValueError("Invalid Plugin entry")
-    current = get_plugin_by_name(plugin_data["Name"], conn=conn)
-    update_id = None
-    try:
-        update_id = current.next()["id"]
-    except r.ReqlCursorEmpty:
-        return {
-            "errors": 1,
-            "first_error": "Cannot update non-existent plugin!"
-        }
+    update_id = plugin_data[ID_KEY]
     success = RPC.get(update_id).update(plugin_data).run(conn)
     return success
 

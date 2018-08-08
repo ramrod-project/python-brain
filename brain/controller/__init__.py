@@ -3,7 +3,12 @@ manipulate the controller database
 """
 
 NAME_KEY = "Name"
+ID_KEY = "id"
+SERVICE_KEY = "ServiceName"
+UDP_KEY = "UDPPorts"
+TCP_KEY = "TCPPorts"
 
+CONFLICT_ACTION = "update"
 
 AVAILABLE = "Available"
 ACTIVE = "Active"
@@ -31,3 +36,4 @@ ALLOWED_STATES = frozenset((ACTIVE,
                             RESTARTING))
 
 from . import plugins
+from . import interfaces

@@ -1,3 +1,5 @@
+syntax = "proto2";
+
 package brain;
 
 
@@ -84,17 +86,22 @@ message Commands {
 message Plugin {
     optional string id = 1;
     required string Name = 2;
-    required string State = 3 [default = "Available"];
-    required string DesiredState = 4;
-    required string Interface = 5;
-    repeated string ExternalPorts = 6;
-    repeated string InternalPorts = 7;
+    required string ServiceName = 3;
+    optional string ServiceID = 4;
+    required string OS = 5 [default = "posix"];
+    required string State = 6 [default = "Available"];
+    required string DesiredState = 7;
+    required string Interface = 8;
+    repeated string ExternalPorts = 9;
+    repeated string InternalPorts = 10;
 }
 
 message Port {
     optional string id = 1;
     required string InterfaceName = 2 [default = "All"];
-    required string Address = 3;
-    repeated string TCPPorts = 4;
-    repeated string UDPPorts = 5;
+    required string NodeHostName = 3;
+    required string OS = 4 [default = "posix"];
+    required string Address = 5;
+    repeated string TCPPorts = 6;
+    repeated string UDPPorts = 7;
 }

@@ -3,6 +3,13 @@ decorators for controller specific functions
 """
 
 from decorator import decorator
+from . import ID_KEY, SERVICE_KEY
+
+
+UNKNOWN_PLUGIN_ERROR = {
+    "errors": 1,
+    "first_error": "Cannot update non-existent plugin!"
+}
 
 
 @decorator
@@ -20,3 +27,30 @@ def expect_arg_type(func_, expected=None,
     for arg_idx in range(len(expected)):
         assert isinstance(args[arg_idx], expected[arg_idx])
     return func_(*args, **kwargs)
+
+
+@decorator
+def set_plugin_id(func_, *args, **kwargs):
+    """
+
+    :param func_:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    from .plugins import find_plugin  # load time workaround- JIT import
+    plugin = args[0]
+    plugin_id = plugin.get(ID_KEY, False)
+    service_name = plugin.get(SERVICE_KEY, False)
+    from sys import stderr
+    stderr.write("{} - {} - {}\n".format(plugin_id, service_name, plugin))
+    if not plugin_id:
+        found_plugin = find_plugin(service_name, SERVICE_KEY, args[-1])
+        if found_plugin:
+            plugin[ID_KEY] = found_plugin[-1][ID_KEY]
+        else:
+            return UNKNOWN_PLUGIN_ERROR
+    return func_(*args, **kwargs)
+
+
+
