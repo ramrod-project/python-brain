@@ -94,14 +94,14 @@ message Plugin {
     required string Interface = 8;
     repeated string ExternalPorts = 9;
     repeated string InternalPorts = 10;
+    repeated string Environment = 11;
 }
 
 message Port {
     optional string id = 1;
-    required string InterfaceName = 2 [default = "All"];
-    required string NodeHostName = 3;
-    required string OS = 4 [default = "posix"];
-    required string Address = 5;
-    repeated string TCPPorts = 6;
-    repeated string UDPPorts = 7;
+    required string Address = 2;
+    repeated string TCPPorts = 3;
+    repeated string UDPPorts = 4;
+    required string NodeHostName = 5;
+    required string OS = 6 [default = "posix"];
 }

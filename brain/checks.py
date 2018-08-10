@@ -37,7 +37,18 @@ def special_typechecking(value, msg):
     result = True
     if msg.DESCRIPTOR.name == "Target":
         result &= special_target_typecheck(value)
+    elif msg.DESCRIPTOR.name == "Plugin":
+        result &= special_plugin_checking(value)
     return result
+
+
+def special_plugin_checking(value):
+    """
+
+    :param value:
+    :return:
+    """
+    return verify_plugin_contents(value)
 
 
 def special_target_typecheck(value):
@@ -107,3 +118,5 @@ def strip(value, msg):
         raise ValueError(str(encode_error))
     output = dict_to_protobuf.protobuf_to_dict(msg)
     return output
+
+from .controller.plugins import verify_plugin_contents

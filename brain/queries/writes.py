@@ -173,7 +173,7 @@ def create_plugin_controller(plugin_data,
                              conn=None):
     from ..controller.plugins import create_plugin
     return create_plugin(plugin_data,
-                         verify_commands=verify_commands,
+                         verify_plugin=verify_commands,
                          conn=conn)
 
 

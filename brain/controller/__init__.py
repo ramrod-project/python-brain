@@ -24,6 +24,15 @@ DESIRE_NONE = ""
 ADDRESS_KEY = "Address"
 DESIRED_STATE_KEY = "DesiredState"
 
+EX_PORTS_KEY = "ExternalPorts"
+IN_PORTS_KEY = "InternalPorts"
+ENV_KEY = "Environment"
+
+PORT_SEPARATOR = "/"
+ENV_SEPARATOR = "="
+
+ALLOWED_PROTOCOLS = frozenset(("tcp", "udp"))
+
 ALLOWED_DESIRED_STATES = frozenset((DESIRE_ACTIVE,
                                     DESIRE_RESTART,
                                     DESIRE_STOP,
