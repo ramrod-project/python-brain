@@ -170,10 +170,15 @@ def update_plugin(plugin_data,
     :param conn: <rethinkdb.DefaultConnection>
     :return: <dict> rethinkdb update response value
     """
-    if verify_plugin and not verify(plugin_data, Plugin()):
-        raise ValueError("Invalid Plugin entry")
+
     update_id = plugin_data[ID_KEY]
+    original = get(update_id, conn=conn)
     success = RPC.get(update_id).update(plugin_data).run(conn)
+    if verify_plugin:
+        updated = get(update_id, conn=conn)
+        if not verify(updated, Plugin()):
+            success = RPC.get(update_id).update(original).run(conn)
+            raise ValueError("Invalid Plugin entry {}".format(success))
     return success
 
 
