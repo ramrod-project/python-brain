@@ -42,8 +42,6 @@ def set_plugin_id(func_, *args, **kwargs):
     plugin = args[0]
     plugin_id = plugin.get(ID_KEY, False)
     service_name = plugin.get(SERVICE_KEY, False)
-    from sys import stderr
-    stderr.write("{} - {} - {}\n".format(plugin_id, service_name, plugin))
     if not plugin_id:
         found_plugin = find_plugin(service_name, SERVICE_KEY, args[-1])
         if found_plugin:

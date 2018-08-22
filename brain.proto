@@ -99,7 +99,7 @@ message Plugin {
 
 message Port {
     optional string id = 1;
-    required string Address = 2;
+    required string Interface = 2;
     repeated string TCPPorts = 3;
     repeated string UDPPorts = 4;
     required string NodeHostName = 5;

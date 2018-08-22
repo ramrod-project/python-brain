@@ -21,7 +21,7 @@ DESIRE_RESTART = "Restart"
 DESIRE_STOP = "Stop"
 DESIRE_NONE = ""
 
-ADDRESS_KEY = "Address"
+ADDRESS_KEY = "Interface"
 DESIRED_STATE_KEY = "DesiredState"
 
 EX_PORTS_KEY = "ExternalPorts"

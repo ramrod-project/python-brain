@@ -1,6 +1,7 @@
 """
 quick helper functions
 """
+from . import ADDRESS_KEY
 
 
 def _check_common(field, interface, port_data):
@@ -17,7 +18,7 @@ def _check_common(field, interface, port_data):
     if common:
         msg = "{} conflicts(s): {} in use on {}".format(field,
                                                         common,
-                                                        interface['Address'])
+                                                        interface[ADDRESS_KEY])
         response = {"errors": 1,
                     "first_error": msg}
     return response
