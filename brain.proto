@@ -1,3 +1,5 @@
+syntax = "proto2";
+
 package brain;
 
 
@@ -28,7 +30,7 @@ message Job {
     optional string id = 1;
     required Target JobTarget = 2;
     required string Status = 3;
-    required int32 StartTime = 4;
+    required float StartTime = 4;
     required Command JobCommand = 5;
 }
 message Output {
@@ -65,10 +67,10 @@ message Audit {
 }
 
 message Binary {
-    optional string id = 1;
     required string Name = 2;
-    required string ContentType = 3;
-    required bytes Content = 4;
+    required float Timestamp = 3;
+    required string ContentType = 4;
+    required bytes Content = 5;
 }
 
 message Targets {
@@ -84,17 +86,22 @@ message Commands {
 message Plugin {
     optional string id = 1;
     required string Name = 2;
-    required string State = 3 [default = "Available"];
-    required string DesiredState = 4;
-    required string Interface = 5;
-    repeated string ExternalPorts = 6;
-    repeated string InternalPorts = 7;
+    required string ServiceName = 3;
+    optional string ServiceID = 4;
+    required string OS = 5 [default = "posix"];
+    required string State = 6 [default = "Available"];
+    required string DesiredState = 7;
+    required string Interface = 8;
+    repeated string ExternalPorts = 9;
+    repeated string InternalPorts = 10;
+    repeated string Environment = 11;
 }
 
 message Port {
     optional string id = 1;
-    required string InterfaceName = 2 [default = "All"];
-    required string Address = 3;
-    repeated string TCPPorts = 4;
-    repeated string UDPPorts = 5;
+    required string Interface = 2;
+    repeated string TCPPorts = 3;
+    repeated string UDPPorts = 4;
+    required string NodeHostName = 5;
+    required string OS = 6 [default = "posix"];
 }

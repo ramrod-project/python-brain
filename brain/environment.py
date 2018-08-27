@@ -1,3 +1,7 @@
+"""
+module to assess the current environment variables
+default values loaded here
+"""
 from os import environ
 
 #https://en.wikipedia.org/wiki/Syslog#Severity_levels

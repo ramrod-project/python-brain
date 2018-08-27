@@ -2,8 +2,10 @@
 controls Job related changes
 """
 from decorator import decorator
+from .decorators import verify_jobs_args_is_tuple, verify_jobs_args_length
+from .decorators import COMMAND_FIELD, INPUT_FIELD, OPTIONAL_FIELD
+from .decorators import VALUE_FIELD
 from .brain_pb2 import Job, Jobs
-from .queries import insert_jobs, is_job_done, get_next_job
 from .checks import verify
 
 BEGIN = ""
@@ -20,6 +22,7 @@ ACTIVE = "Active"
 SUCCESS = "success"
 FAILURE = "failure"
 TRANSITION = "transition"
+
 
 class JobsError(Exception):
     """
@@ -95,12 +98,11 @@ STATES = {BEGIN: {SUCCESS: READY,
                   FAILURE: ERROR,
                   TRANSITION: frozenset([DONE,
                                          ERROR,
-                                         STOP])}
-          }
+                                         STOP])}}
 
 
 @decorator
-def wrap_good_state(f, *args, **kwargs):
+def wrap_good_state(func_, *args, **kwargs):
     """
     Decorator/Wrapper to verify the input is an acceptable state
     prior to calling a function on it
@@ -112,7 +114,7 @@ def wrap_good_state(f, *args, **kwargs):
     """
     if not verify_state(args[0]):
         raise InvalidState("{} is not a valid state".format(args[0]))
-    return f(*args, **kwargs)
+    return func_(*args, **kwargs)
 
 
 def verify_state(state):
@@ -176,3 +178,51 @@ def verify_job(job):
     :return: <bool>
     """
     return verify(job, Job())
+
+
+def verify_jobs(jobs):
+    """
+    verifies list of jobs
+
+    :param job: <list>
+    :return: <bool>
+    """
+    return verify(jobs, Jobs())
+
+
+def _get_args_loop(job, key):
+    args_tuple = list()
+    for job_args in job[COMMAND_FIELD][key]:
+        args_tuple.append(job_args[VALUE_FIELD])
+    return args_tuple
+
+
+def get_args(job):
+    """
+    This function gets the arguments from a job
+    :param job: job dictionary
+    :return: input tuple, optional tuple
+    """
+    return tuple(_get_args_loop(job, INPUT_FIELD)), \
+        tuple(_get_args_loop(job, OPTIONAL_FIELD))
+
+
+def _apply_args_loop(job, args, key):
+    for i in range(len(args)):
+        job[COMMAND_FIELD][key][i][VALUE_FIELD] = args[i]
+
+
+@verify_jobs_args_length
+@verify_jobs_args_is_tuple
+def apply_args(job, inputs, optional_inputs=None):
+    """
+    This function is error checking before the job gets
+    updated.
+    :param job: Must be a valid job
+    :param inputs: Must be a tuple type
+    :param optional_inputs: optional for OptionalInputs
+    :return: job
+    """
+    _apply_args_loop(job, inputs, INPUT_FIELD)
+    _apply_args_loop(job, optional_inputs, OPTIONAL_FIELD)
+    return job

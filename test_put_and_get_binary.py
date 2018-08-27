@@ -18,6 +18,9 @@ from .brain.brain_pb2 import Binary
 CLIENT = docker.from_env()
 TEST_FILE_NAME = "TEST_FILE.txt"
 TEST_FILE_CONTENT = "content data is binary 灯火 标 and string stuff ".encode('utf-8')
+TEST_TEXT_NAME = "TEST_TEXT.txt"
+TEST_TEXT_CONTENT = "standard text stuff"
+
 
 @fixture(scope='module')
 def rethink():
@@ -102,3 +105,9 @@ def test_huge_insert_fails_needs_split(rethink):
         except ValueError as ValErr:
             assert "greater than maximum (134217727)" in str(ValErr)
             raise ValErr
+
+def test_put_text_file(rethink):
+    basic_put_object = {"Name": TEST_TEXT_NAME,
+                        "Content": TEST_TEXT_CONTENT}
+    put(basic_put_object)
+    assert get(TEST_TEXT_NAME)["Content"] == TEST_TEXT_CONTENT
