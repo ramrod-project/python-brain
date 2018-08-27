@@ -2,6 +2,7 @@
 functions specific to the controller
 """
 
+from time import time
 from ..queries.decorators import wrap_rethink_errors, wrap_connection
 from ..queries import RPC, RPP
 from .. import r
@@ -13,7 +14,7 @@ from .helpers import _check_common, has_port_conflict
 from .interfaces import get_ports_by_ip
 from . import DESIRE_ACTIVE, DESIRE_STOP, DESIRE_RESTART
 from . import DESIRED_STATE_KEY, ALLOWED_DESIRED_STATES
-from . import ADDRESS_KEY, NAME_KEY, SERVICE_KEY, ID_KEY
+from . import ADDRESS_KEY, NAME_KEY, SERVICE_KEY, ID_KEY, ENV_KEY
 from .verification import verify_port_map
 
 
@@ -205,8 +206,13 @@ def quick_change_desired_state(plugin_id, desired_state, conn=None):
     :return:
     """
     assert desired_state in ALLOWED_DESIRED_STATES
-    desired = {DESIRED_STATE_KEY: desired_state}
-    return RPC.get(plugin_id).update(desired).run(conn)
+    new_kv = "{}=restart".format(int(time()))
+    return RPC.get(plugin_id)\
+        .update(
+            {DESIRED_STATE_KEY: desired_state,
+             ENV_KEY: r.row[ENV_KEY].prepend(new_kv)
+            })\
+        .run(conn)
 
 
 def activate(plugin_id, conn=None):
