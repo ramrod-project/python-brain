@@ -3,14 +3,7 @@ decorators for controller specific functions
 """
 
 from decorator import decorator
-from . import ID_KEY, SERVICE_KEY
-
-
-UNKNOWN_PLUGIN_ERROR = {
-    "errors": 1,
-    "first_error": "Cannot update non-existent plugin!"
-}
-
+from . import ID_KEY, SERVICE_KEY, FIRST_ERROR, UNKNOWN_PLUGIN_STRING, MOCK_ERROR_DICT
 
 @decorator
 def expect_arg_type(func_, expected=None,
@@ -47,7 +40,9 @@ def set_plugin_id(func_, *args, **kwargs):
         if found_plugin:
             plugin[ID_KEY] = found_plugin[-1][ID_KEY]
         else:
-            return UNKNOWN_PLUGIN_ERROR
+            invalid_plugin = MOCK_ERROR_DICT
+            invalid_plugin[FIRST_ERROR] = UNKNOWN_PLUGIN_STRING
+            return invalid_plugin
     return func_(*args, **kwargs)
 
 

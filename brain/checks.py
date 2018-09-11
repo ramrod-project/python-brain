@@ -6,7 +6,8 @@ functions should all return a boolean if possible.
 
 from google.protobuf.message import EncodeError
 import dict_to_protobuf #this lib allows extra keys
-dict_to_protobuf.l.setLevel("ERROR")
+from .static import TARGET_OPTIONAL_FIELD, ERROR, TARGET, PLUGIN
+dict_to_protobuf.l.setLevel(ERROR.upper())
 
 
 def verify(value, msg):
@@ -35,9 +36,9 @@ def special_typechecking(value, msg):
     :return: <bool>
     """
     result = True
-    if msg.DESCRIPTOR.name == "Target":
+    if msg.DESCRIPTOR.name == TARGET:
         result &= special_target_typecheck(value)
-    elif msg.DESCRIPTOR.name == "Plugin":
+    elif msg.DESCRIPTOR.name == PLUGIN:
         result &= special_plugin_checking(value)
     return result
 
@@ -59,7 +60,7 @@ def special_target_typecheck(value):
     """
     result = True
     # if key:Optional exists, it must be a dict object
-    result &= isinstance(value.get("Optional", dict()), dict)
+    result &= isinstance(value.get(TARGET_OPTIONAL_FIELD, dict()), dict)
     return result
 
 

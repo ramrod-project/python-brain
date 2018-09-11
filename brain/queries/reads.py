@@ -5,11 +5,13 @@ from ..brain_pb2 import Job
 from ..checks import verify
 from ..connection import rethinkdb as r
 from ..decorators import deprecated_function
+from ..static import RPX, RBT, RBJ, RBO, COMMAND_NAME_KEY, LOCATION_FIELD, \
+    PLUGIN_NAME_KEY, STATUS_FIELD, READY, TARGET_FIELD, START_FIELD, DONE, \
+    ID_FIELD, OUTPUTJOB_FIELD, CONTENT_FIELD
 from .decorators import wrap_connection
 from .decorators import wrap_rethink_generator_errors
 from .decorators import wrap_rethink_errors
 from .decorators import wrap_job_cursor
-from . import RPX, RBT, RBJ, RBO
 
 
 @wrap_job_cursor
@@ -23,13 +25,15 @@ def _jobs_cursor(plugin_name, location=None, port=None):
     :param port:
     :return:
     """
-    cur = RBJ.get_all("Ready", index="Status")
-    cur_filter = (r.row["JobTarget"]["PluginName"] == plugin_name)
+    cur = RBJ.get_all(READY, index=STATUS_FIELD)
+    cur_filter = (r.row[TARGET_FIELD][PLUGIN_NAME_KEY] == plugin_name)
     if plugin_name and location and not port:
-        cur_filter = cur_filter & (r.row["JobTarget"]["Location"] == location)
+        cur_filter = cur_filter & \
+                     (r.row[TARGET_FIELD][LOCATION_FIELD] == location)
     if plugin_name and location and port:
-        cur_filter = cur_filter & (r.row["JobTarget"]["Port"] == port)
-    return cur.filter(cur_filter).order_by('StartTime')
+        cur_filter = cur_filter & \
+                     (r.row["JobTarget"]["Port"] == port)
+    return cur.filter(cur_filter).order_by(START_FIELD)
 
 
 @wrap_rethink_generator_errors
@@ -55,7 +59,7 @@ def get_targets_by_plugin(plugin_name, conn=None):
     :return: <generator> yields dict objects
     """
     targets = RBT
-    results = targets.filter({"PluginName": plugin_name}).run(conn)
+    results = targets.filter({PLUGIN_NAME_KEY: plugin_name}).run(conn)
     for item in results:
         yield item
 
@@ -71,7 +75,7 @@ def get_plugin_commands(plugin_name, conn=None):
     :param plugin_name: <str> user's plugin selection
     :return: <generator> yields dictionaries
     """
-    results = RPX.table(plugin_name).run(conn)
+    results = RPX.table(plugin_name).order_by(COMMAND_NAME_KEY).run(conn)
     for item in results:
         yield item
 
@@ -87,7 +91,7 @@ def get_plugin_command(plugin_name, command_name, conn=None):
     :return: <dict>
     """
     commands = RPX.table(plugin_name).filter(
-        {"CommandName": command_name}).run(conn)
+        {COMMAND_NAME_KEY: command_name}).run(conn)
     command = None
     for command in commands:
         continue  # exhausting the cursor
@@ -103,8 +107,8 @@ def get_job_status(job_id, conn=None):
     :param conn: <RethinkDefaultConnection>
     :return:
     """
-    job = RBJ.get(job_id).pluck("Status").run(conn)
-    return job["Status"]
+    job = RBJ.get(job_id).pluck(STATUS_FIELD).run(conn)
+    return job[STATUS_FIELD]
 
 
 @wrap_rethink_errors
@@ -118,8 +122,8 @@ def is_job_done(job_id, conn=None):
     :return: <dict> if job is done <false> if
     """
     result = False
-    get_done = RBJ.get_all("Done", index="Status")
-    for item in get_done.filter({'id': job_id}).run(conn):
+    get_done = RBJ.get_all(DONE, index=STATUS_FIELD)
+    for item in get_done.filter({ID_FIELD: job_id}).run(conn):
         result = item
     return result
 
@@ -136,17 +140,19 @@ def get_output_content(job_id, max_size=1024, conn=None):
     :return: <str> or <bytes>
     """
     content = None
-    check_status = RBO.filter({"OutputJob": {'id': job_id}}).run(conn)
+    check_status = RBO.filter({OUTPUTJOB_FIELD: {ID_FIELD: job_id}}).run(conn)
     for status_item in check_status:
         content = _truncate_output_content_if_required(status_item, max_size)
     return content
 
 
 def _truncate_output_content_if_required(item, max_size):
-    if max_size and "Content" in item and len(item['Content']) > max_size:
-        content = "{}\n[truncated]".format(item['Content'][:max_size])
-    elif "Content" in item:
-        content = item['Content']
+    if max_size \
+            and CONTENT_FIELD in item \
+            and len(item[CONTENT_FIELD]) > max_size:
+        content = "{}\n[truncated]".format(item[CONTENT_FIELD][:max_size])
+    elif CONTENT_FIELD in item:
+        content = item[CONTENT_FIELD]
     else:
         content = ""
     return content

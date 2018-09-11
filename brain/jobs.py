@@ -3,25 +3,11 @@ controls Job related changes
 """
 from decorator import decorator
 from .decorators import verify_jobs_args_is_tuple, verify_jobs_args_length
-from .decorators import COMMAND_FIELD, INPUT_FIELD, OPTIONAL_FIELD
-from .decorators import VALUE_FIELD
 from .brain_pb2 import Job, Jobs
 from .checks import verify
-
-BEGIN = ""
-INVALID = "Invalid"
-VALID = "Valid"
-READY = "Ready"
-STOP = "Stopped"
-PENDING = "Pending"
-DONE = "Done"
-ERROR = "Error"
-WAITING = "Waiting"
-ACTIVE = "Active"
-
-SUCCESS = "success"
-FAILURE = "failure"
-TRANSITION = "transition"
+from .static import BEGIN, INVALID, VALID, READY, STOP, PENDING, \
+    DONE, ERROR, WAITING, ACTIVE, SUCCESS, FAILURE, TRANSITION, \
+    COMMAND_FIELD, INPUT_FIELD, OPTIONAL_FIELD, VALUE_FIELD
 
 
 class JobsError(Exception):

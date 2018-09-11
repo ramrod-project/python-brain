@@ -8,23 +8,20 @@ import rethinkdb
 from rethinkdb.net import DefaultConnection
 from decorator import decorator
 from .environment import check_stage_env
+from .static import BRAIN_DB, PLUGINDB, JOBS, TARGETS, OUTPUTS,\
+    PROD, QA, DEV, TESTING
 
-#Recursive imports at bottom of file
+# Recursive imports at bottom of file
 
-BRAIN_DB = "Brain"
-AUDIT_DB = "Audit"
-PLUGINDB = "Plugins"
-JOBS = "Jobs"
-TARGETS = "Targets"
-OUTPUTS = "Outputs"
+
 SELF_TEST = {BRAIN_DB: [JOBS, TARGETS, OUTPUTS],
              #AUDIT_DB: [], #Audit DB soon into latest
              PLUGINDB: []}
 
-DEFAULT_HOSTS = {"PROD": "rethinkdb",
-                 "QA": "rethinkdb",
-                 "DEV": "localhost",
-                 "TESTING": "localhost",
+DEFAULT_HOSTS = {PROD: "rethinkdb",
+                 QA: "rethinkdb",
+                 DEV: "localhost",
+                 TESTING: "localhost",
                  "": "localhost"}  # environment not configured, try anyway
 
 

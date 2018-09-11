@@ -15,10 +15,12 @@ from .interfaces import get_ports_by_ip
 from . import DESIRE_ACTIVE, DESIRE_STOP, DESIRE_RESTART
 from . import DESIRED_STATE_KEY, ALLOWED_DESIRED_STATES
 from . import ADDRESS_KEY, NAME_KEY, SERVICE_KEY, ID_KEY, ENV_KEY
+from . import MOCK_ERROR_DICT, DUPLICATE_SERVICE_STRING, FIRST_ERROR
+from . import PLUGIN_STATE_KEY
 from .verification import verify_port_map
 
 
-DEFAULT_LOOKUP_KEY = "Name"
+DEFAULT_LOOKUP_KEY = NAME_KEY
 
 
 def verify_plugin_contents(plugin):
@@ -45,7 +47,7 @@ def get_plugin_by_name(plugin_name,
     :return: <list> rethinkdb cursor
     """
     result = RPC.filter({
-        "Name": plugin_name
+        NAME_KEY: plugin_name
     }).run(conn)
     return result
 
@@ -111,10 +113,9 @@ def create_plugin(plugin_data,
         success = RPC.insert(plugin_data,
                              conflict="update").run(conn)
     else:
-        success = {
-            "errors": 1,
-            "first_error": "Duplicate service name exists {}".format(
-                plugin_data[SERVICE_KEY])}
+        success = MOCK_ERROR_DICT
+        error_msg = DUPLICATE_SERVICE_STRING.format(plugin_data[SERVICE_KEY])
+        MOCK_ERROR_DICT[FIRST_ERROR] = error_msg
     return success
 
 
@@ -213,6 +214,40 @@ def quick_change_desired_state(plugin_id, desired_state, conn=None):
              ENV_KEY: r.row[ENV_KEY].prepend(new_kv)
             })\
         .run(conn)
+
+
+@wrap_rethink_errors
+@wrap_connection
+def recover_state(serv_name, conn=None):
+    """
+
+    :param serv_name: <str> service name of plugin
+    :param conn: <rethinkdb.DefaultConnection>
+    :return: <dictionary> last plugin state
+    """
+    serv_filter = {SERVICE_KEY: serv_name}
+    curs = RPC.filter(serv_filter).run(conn)
+    num_docs = 0
+    for doc in curs:
+        num_docs += 1
+    if num_docs != 1:
+        raise ValueError("Duplicate Services found when recovering")
+    return doc[PLUGIN_STATE_KEY]
+
+
+@wrap_rethink_errors
+@wrap_connection
+def record_state(serv_name, state, conn=None):
+    """
+    MAKE A DOCSTRING
+    :param serv_name: <str> service name of plugin instance
+    :param state: <dictionary> plugin state
+    :param conn: <rethinkdb.DefaultConnection>
+    :return: 
+    """
+    serv_filter = {SERVICE_KEY:serv_name}
+    updated = {PLUGIN_STATE_KEY: state}
+    return RPC.filter(serv_filter).update(updated).run(conn)
 
 
 def activate(plugin_id, conn=None):

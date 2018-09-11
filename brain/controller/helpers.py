@@ -1,7 +1,8 @@
 """
 quick helper functions
 """
-from . import ADDRESS_KEY
+from . import ADDRESS_KEY, TCP_KEY, UDP_KEY, \
+    MOCK_ERROR_DICT, CONFLICT_ERROR_STRING, FIRST_ERROR
 
 
 def _check_common(field, interface, port_data):
@@ -16,11 +17,11 @@ def _check_common(field, interface, port_data):
     common = list(set(port_data[field]) &
                   set(interface[field]))
     if common:
-        msg = "{} conflicts(s): {} in use on {}".format(field,
-                                                        common,
-                                                        interface[ADDRESS_KEY])
-        response = {"errors": 1,
-                    "first_error": msg}
+        msg = CONFLICT_ERROR_STRING.format(field,
+                                  common,
+                                  interface[ADDRESS_KEY])
+        response = MOCK_ERROR_DICT
+        response[FIRST_ERROR] = msg
     return response
 
 
@@ -33,8 +34,8 @@ def has_port_conflict(port_data,
     :return:
     """
     for interface in existing:
-        common_tcp = _check_common("TCPPorts", interface, port_data)
-        common_udp = _check_common("UDPPorts", interface, port_data)
+        common_tcp = _check_common(TCP_KEY, interface, port_data)
+        common_udp = _check_common(UDP_KEY, interface, port_data)
         if common_tcp:
             return common_tcp
         elif common_udp:

@@ -9,8 +9,6 @@ from ..connection import validate_get_dbs
 WRAP_RETHINK_ERRORS = (r.errors.ReqlOpFailedError,
                        r.errors.ReqlError,
                        r.errors.ReqlDriverError)
-STATUS_FIELD = "Status"
-START_FIELD = "StartTime"
 
 
 @decorator

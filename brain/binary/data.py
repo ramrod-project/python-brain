@@ -11,7 +11,7 @@ from ..brain_pb2 import Binary
 from ..queries import RBF
 from .decorators import wrap_name_to_id, wrap_guess_content_type
 from .decorators import wrap_content_as_binary_if_needed
-from .decorators import PRIMARY_FIELD, CONTENT_FIELD, TIMESTAMP_FIELD
+from . import PRIMARY_FIELD, CONTENT_FIELD, TIMESTAMP_FIELD
 
 BINARY = r.binary
 

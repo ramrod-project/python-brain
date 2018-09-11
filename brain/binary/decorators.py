@@ -6,11 +6,8 @@ from .. import r
 # import magic at bottom of file
 
 BINARY = r.binary
-PRIMARY_FIELD = "Name"
-PRIMARY_KEY = "id"
-CONTENT_FIELD = "Content"
-CONTENTTYPE_FIELD = "ContentType"
-TIMESTAMP_FIELD = "Timestamp"
+from . import PRIMARY_FIELD, PRIMARY_KEY, \
+    CONTENT_FIELD, CONTENTTYPE_FIELD
 
 
 @decorator

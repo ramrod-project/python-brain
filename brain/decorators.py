@@ -4,12 +4,7 @@ decorator objects for other functions in the main brain module
 
 from decorator import decorator
 from sys import stderr
-
-COMMAND_FIELD = "JobCommand"
-INPUT_FIELD = "Inputs"
-OPTIONAL_FIELD = "OptionalInputs"
-VALUE_FIELD = "Value"
-
+from .static import COMMAND_FIELD, INPUT_FIELD, OPTIONAL_FIELD, VALUE_FIELD
 
 @decorator
 def verify_jobs_args_length(func_, *args, **kwargs):

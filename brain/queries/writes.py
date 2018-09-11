@@ -6,8 +6,9 @@ from ..checks import verify
 from ..jobs import WAITING, STATES, transition_success
 from ..connection import rethinkdb as r
 from ..decorators import deprecated_function
+from ..static import START_FIELD, STATUS_FIELD, ID_FIELD, OUTPUTJOB_FIELD, \
+    CONTENT_FIELD, COMMAND_NAME_KEY, RDB_UPDATE, RDB_REPLACE
 from .decorators import wrap_connection, wrap_rethink_errors
-from .decorators import START_FIELD, STATUS_FIELD
 from . import RPX, RBT, RBJ, RPC, RPP, RBO
 from .reads import plugin_exists, get_job_by_id
 
@@ -63,7 +64,8 @@ def insert_jobs(jobs, verify_jobs=True, conn=None):
     :return: <dict> rethinkdb insert response value
     """
     assert isinstance(jobs, list)
-    if verify_jobs and not verify({"Jobs": jobs}, Jobs()):
+    if verify_jobs \
+            and not verify({Jobs.DESCRIPTOR.name: jobs}, Jobs()):
         raise ValueError("Invalid Jobs")
     inserted = RBJ.insert(jobs).run(conn)
     return inserted
@@ -85,8 +87,8 @@ def update_job_status(job_id, status, conn=None):
     job_update = RBJ.get(job_id).update({STATUS_FIELD: status}).run(conn)
     if job_update["replaced"] == 0 and job_update["unchanged"] == 0:
         raise ValueError("Unknown job_id: {}".format(job_id))
-    id_filter = (r.row["OutputJob"]["id"] == job_id)
-    output_job_status = {"OutputJob": {"Status": status}}
+    id_filter = (r.row[OUTPUTJOB_FIELD][ID_FIELD] == job_id)
+    output_job_status = {OUTPUTJOB_FIELD: {STATUS_FIELD: status}}
     output_update = RBO.filter(id_filter).update(output_job_status).run(conn)
     return {str(RBJ): job_update, str(RBO): output_update}
 
@@ -104,10 +106,10 @@ def write_output(job_id, content, conn=None):
     results = {}
     if output_job is not None:
         entry = {
-            "OutputJob": output_job,
-            "Content": content
+            OUTPUTJOB_FIELD: output_job,
+            CONTENT_FIELD: content
         }
-        results = RBO.insert(entry, conflict="replace").run(conn)
+        results = RBO.insert(entry, conflict=RDB_REPLACE).run(conn)
     return results
 
 
@@ -124,7 +126,7 @@ def create_plugin(plugin_name, conn=None):
     results = {}
     if not plugin_exists(plugin_name, conn=conn):
         results = RPX.table_create(plugin_name,
-                                   primary_key="CommandName").run(conn)
+                                   primary_key=COMMAND_NAME_KEY).run(conn)
     return results
 
 
@@ -158,12 +160,12 @@ def advertise_plugin_commands(plugin_name, commands,
     :return:
     """
     assert isinstance(commands, list)
-    if verify_commands and not verify({"Commands": commands},
+    if verify_commands and not verify({Commands.DESCRIPTOR.name: commands},
                                       Commands()):
         raise ValueError("Invalid Commands")
     plugin = RPX.table(plugin_name)
     success = plugin.insert(commands,
-                            conflict="update").run(conn)
+                            conflict=RDB_UPDATE).run(conn)
     return success
 
 
@@ -203,6 +205,7 @@ def transition_waiting(start_time, conn=None):
     """
 
     :param start_time: <float> from time.time()
+    :param conn: (optional) <rethinkdb connection>
     :return: <dict>
     :raises may raise reqlerror, wrapped into ValueError by decorator
     """

@@ -32,7 +32,7 @@ except ImportError as import_error:  # :pragma-nocover
     c_stat = object  # :pragma-nocover
 
 from .data import get, put, list_dir, delete
-from .decorators import CONTENT_FIELD
+from . import CONTENT_FIELD, PRIMARY_KEY, PRIMARY_FIELD
 
 VERBOSE = False
 GET_DIR = [".", ".."]
@@ -41,6 +41,10 @@ ALLOW_REMOVE = False
 READ_ONLY = False
 MAX_CACHE_TIME = 600
 OBJ_PERMISSION = 0o755
+TIMESTAMP_KEY = "ts"
+BASE_KEY = "base"
+STAGED_KEY = "staged"
+PATH_ROOT = "/"
 
 
 class NoStat(c_stat):  # pragma: no cover
@@ -109,7 +113,7 @@ class BrainStore(Operations):
         return base
 
     def _getattr_pull_file_to_cache(self, base, path):  # pragma: no cover
-        filename = path.strip("/")
+        filename = path.strip(PATH_ROOT)
         brain_data = get(filename) or {}
         if not brain_data and not self.config.read_only:
             raise FuseOSError(ENOENT)
@@ -118,21 +122,23 @@ class BrainStore(Operations):
         base.st_nlink = 1
         base.st_size = len(buf)
         self.cache[path] = buf
-        self.attr[path] = {"ts": time(), "base": base, "staged": None}
+        self.attr[path] = {TIMESTAMP_KEY: time(),
+                           BASE_KEY: base,
+                           STAGED_KEY: None}
         return base
 
     def _getattr_file(self, base, path):  # pragma: no cover
         now_time = time()
-        if now_time - self.attr[path].get("ts", 0) > MAX_CACHE_TIME:
+        if now_time - self.attr[path].get(TIMESTAMP_KEY, 0) > MAX_CACHE_TIME:
             base = self._getattr_pull_file_to_cache(base, path)
         else:
-            base = self.attr[path]['base']
+            base = self.attr[path][BASE_KEY]
         return base
 
     def getattr(self, path, fh=None):  # pragma: no cover
         # print("attr {}".format(path))
         base = NoStat()
-        if path == "/":
+        if path == PATH_ROOT:
             base = self._getattr_root(base)
         else:
             with self.attr_lock:
@@ -154,7 +160,9 @@ class BrainStore(Operations):
             base.st_mode = stat.S_IFREG | OBJ_PERMISSION
             base.st_nlink = 1
             base.st_size = -1
-            self.attr[path] = {"ts": now_time, "base": base, "staged": BytesIO()}
+            self.attr[path] = {TIMESTAMP_KEY: now_time,
+                               BASE_KEY: base,
+                               STAGED_KEY: BytesIO()}
         return mode
 
     def write(self, path, data, offset, fh):  # pragma: no cover
@@ -163,8 +171,8 @@ class BrainStore(Operations):
         """
         # print("write {}".format(path))
         with self.attr_lock:
-            base = self.attr[path]['base']
-            staged = self.attr[path]['staged']
+            base = self.attr[path][BASE_KEY]
+            staged = self.attr[path][STAGED_KEY]
             if not staged.closed:
                 base.st_size += len(data)
                 staged.write(data)
@@ -178,17 +186,19 @@ class BrainStore(Operations):
                 del self.attr[path]
                 if self.config.allow_remove and \
                         not self.config.read_only:
-                    delete(path.strip("/"))
+                    delete(path.strip(PATH_ROOT))
 
     def _release_upload_to_brain(self, path):  # pragma: no cover
-        base = self.attr[path]['base']
-        filename = path.strip("/")
-        staged = self.attr[path]["staged"]
+        base = self.attr[path][BASE_KEY]
+        filename = path.strip(PATH_ROOT)
+        staged = self.attr[path][STAGED_KEY]
         if base.staged and base.st_size > 0 and not staged.closed:
             io_val = staged.getvalue()
             staged.close()
             try:
-                put({"id": filename, "Name": filename, "Content": io_val})
+                put({PRIMARY_KEY: filename,
+                     PRIMARY_FIELD: filename,
+                     CONTENT_FIELD: io_val})
             except ValueError as ValErr:
                 stderr.write("{}\n".format(ValErr))
             del self.attr[path]
@@ -211,7 +221,7 @@ class BrainStore(Operations):
         with self.attr_lock:
             now_time = time()
             for path in self.cache:
-                if now_time - self.attr[path]['ts'] >= MAX_CACHE_TIME:
+                if now_time - self.attr[path][TIMESTAMP_KEY] >= MAX_CACHE_TIME:
                     need_to_delete.append(path)
             for path in need_to_delete:
                 del self.attr[path]
@@ -223,6 +233,7 @@ def start_filesystem(mountpoint,
     """
     prgramatically mount this filesystem to some mount point
     :param mountpoint:
+    :param config:
     :return:
     """
     if has_fuse:
