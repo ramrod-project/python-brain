@@ -32,10 +32,10 @@ def _jobs_cursor(plugin_name, location=None, port=None, custom=None):
     cur_filter = cur_filter & \
                  (~r.row.has_fields(EXPIRE_FIELD) |
                   r.row[EXPIRE_FIELD].ge(time()))
-    if plugin_name and location and not port:
+    if location:
         cur_filter = cur_filter & \
                      (r.row[TARGET_FIELD][LOCATION_FIELD] == location)
-    if plugin_name and location and port:
+    if port:
         cur_filter = cur_filter & \
                      (r.row[TARGET_FIELD][PORT_FIELD] == port)
     if custom:
