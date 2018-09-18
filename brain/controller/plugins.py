@@ -97,7 +97,7 @@ def get_names(conn=None):
 @wrap_rethink_errors
 @wrap_connection
 def create_plugin(plugin_data,
-                  verify_plugin=False,
+                  verify_plugin=True,
                   conn=None):
     """
     :param plugin_data: <dict> dict matching Plugin()
@@ -134,7 +134,7 @@ def _get_existing_interface(existing, port_data):
 
 @deprecated_function(replacement="brain.controller.interfaces.create_port")
 def create_port(port_data,
-                verify_port=False,
+                verify_port=True,
                 conn=None):
     """
 
@@ -163,7 +163,7 @@ def get_interfaces(conn=None):
 @wrap_connection
 @set_plugin_id
 def update_plugin(plugin_data,
-                  verify_plugin=False,
+                  verify_plugin=True,
                   conn=None):
     """
 

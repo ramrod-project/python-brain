@@ -65,7 +65,7 @@ def _get_existing_interface(existing, port_data):
 @wrap_rethink_errors
 @wrap_connection
 def create_port(port_data,
-                verify_port=False,
+                verify_port=True,
                 conn=None):
     """
 
