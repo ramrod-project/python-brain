@@ -18,8 +18,7 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='brain.proto',
   package='brain',
-  syntax='proto2',
-  serialized_pb=_b('\n\x0b\x62rain.proto\x12\x05\x62rain\"\xe4\x01\n\x07\x43ommand\x12\n\n\x02id\x18\x01 \x01(\t\x12\x13\n\x0b\x43ommandName\x18\x02 \x02(\t\x12\x0f\n\x07Tooltip\x18\x03 \x02(\t\x12\x0e\n\x06Output\x18\x04 \x02(\x08\x12$\n\x06Inputs\x18\x05 \x03(\x0b\x32\x14.brain.Command.Input\x12,\n\x0eOptionalInputs\x18\x06 \x03(\x0b\x32\x14.brain.Command.Input\x1a\x43\n\x05Input\x12\x0c\n\x04Name\x18\x01 \x02(\t\x12\x0c\n\x04Type\x18\x02 \x02(\t\x12\x0f\n\x07Tooltip\x18\x03 \x02(\t\x12\r\n\x05Value\x18\x04 \x02(\t\"l\n\x06Target\x12\n\n\x02id\x18\x01 \x01(\t\x12\x12\n\nPluginName\x18\x02 \x02(\t\x12\x10\n\x08Location\x18\x03 \x02(\t\x12\x0c\n\x04Port\x18\x04 \x02(\t\x12\"\n\x08Optional\x18\x05 \x01(\x0b\x32\x10.brain.Telemetry\"\xb3\x01\n\tTelemetry\x12\x0c\n\x04init\x18\x01 \x01(\t\x12\'\n\x06\x43ommon\x18\x02 \x01(\x0b\x32\x17.brain.Telemetry.common\x12+\n\x08Specific\x18\x03 \x01(\x0b\x32\x19.brain.Telemetry.specific\x1a\n\n\x08specific\x1a\x36\n\x06\x63ommon\x12\x0f\n\x07\x43heckin\x18\x01 \x01(\x02\x12\r\n\x05\x41\x64min\x18\x02 \x01(\x08\x12\x0c\n\x04User\x18\x03 \x01(\t\"\xa5\x01\n\x03Job\x12\n\n\x02id\x18\x01 \x01(\t\x12 \n\tJobTarget\x18\x02 \x02(\x0b\x32\r.brain.Target\x12\x0e\n\x06Status\x18\x03 \x02(\t\x12\x11\n\tStartTime\x18\x04 \x02(\x02\x12\x12\n\nExpireTime\x18\x05 \x01(\x02\x12\x15\n\rCompletedTime\x18\x06 \x01(\x02\x12\"\n\nJobCommand\x18\x07 \x02(\x0b\x32\x0e.brain.Command\"D\n\x06Output\x12\n\n\x02id\x18\x01 \x01(\t\x12\x1d\n\tOutputJob\x18\x02 \x02(\x0b\x32\n.brain.Job\x12\x0f\n\x07\x43ontent\x18\x03 \x02(\t\"e\n\x08JobAudit\x12\n\n\x02id\x18\x01 \x01(\t\x12\x13\n\x0b\x63hange_time\x18\x02 \x02(\x02\x12\x1b\n\x07old_val\x18\x03 \x02(\x0b\x32\n.brain.Job\x12\x1b\n\x07new_val\x18\x04 \x02(\x0b\x32\n.brain.Job\"n\n\x0bTargetAudit\x12\n\n\x02id\x18\x01 \x01(\t\x12\x13\n\x0b\x63hange_time\x18\x02 \x02(\x02\x12\x1e\n\x07old_val\x18\x03 \x02(\x0b\x32\r.brain.Target\x12\x1e\n\x07new_val\x18\x04 \x02(\x0b\x32\r.brain.Target\"e\n\x0bOutputAudit\x12\n\n\x02id\x18\x01 \x01(\t\x12\n\n\x02ts\x18\x02 \x02(\x02\x12\x1e\n\x07old_val\x18\x03 \x02(\x0b\x32\r.brain.Output\x12\x1e\n\x07new_val\x18\x04 \x02(\x0b\x32\r.brain.Output\"\x89\x01\n\x05\x41udit\x12\n\n\x02id\x18\x01 \x01(\t\x12\x1e\n\x03Job\x18\x02 \x01(\x0b\x32\x0f.brain.JobAuditH\x00\x12$\n\x06Target\x18\x03 \x01(\x0b\x32\x12.brain.TargetAuditH\x00\x12$\n\x06Output\x18\x04 \x01(\x0b\x32\x12.brain.OutputAuditH\x00\x42\x08\n\x06record\"O\n\x06\x42inary\x12\x0c\n\x04Name\x18\x02 \x02(\t\x12\x11\n\tTimestamp\x18\x03 \x02(\x02\x12\x13\n\x0b\x43ontentType\x18\x04 \x02(\t\x12\x0f\n\x07\x43ontent\x18\x05 \x02(\x0c\")\n\x07Targets\x12\x1e\n\x07Targets\x18\x01 \x03(\x0b\x32\r.brain.Target\" \n\x04Jobs\x12\x18\n\x04Jobs\x18\x01 \x03(\x0b\x32\n.brain.Job\",\n\x08\x43ommands\x12 \n\x08\x43ommands\x18\x01 \x03(\x0b\x32\x0e.brain.Command\"\xe3\x01\n\x06Plugin\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04Name\x18\x02 \x02(\t\x12\x13\n\x0bServiceName\x18\x03 \x02(\t\x12\x11\n\tServiceID\x18\x04 \x01(\t\x12\x11\n\x02OS\x18\x05 \x02(\t:\x05posix\x12\x18\n\x05State\x18\x06 \x02(\t:\tAvailable\x12\x14\n\x0c\x44\x65siredState\x18\x07 \x02(\t\x12\x11\n\tInterface\x18\x08 \x02(\t\x12\x15\n\rExternalPorts\x18\t \x03(\t\x12\x15\n\rInternalPorts\x18\n \x03(\t\x12\x13\n\x0b\x45nvironment\x18\x0b \x03(\t\"r\n\x04Port\x12\n\n\x02id\x18\x01 \x01(\t\x12\x11\n\tInterface\x18\x02 \x02(\t\x12\x10\n\x08TCPPorts\x18\x03 \x03(\t\x12\x10\n\x08UDPPorts\x18\x04 \x03(\t\x12\x14\n\x0cNodeHostName\x18\x05 \x02(\t\x12\x11\n\x02OS\x18\x06 \x02(\t:\x05posix')
+  serialized_pb=_b('\n\x0b\x62rain.proto\x12\x05\x62rain\"\xe4\x01\n\x07\x43ommand\x12\n\n\x02id\x18\x01 \x01(\t\x12\x13\n\x0b\x43ommandName\x18\x02 \x02(\t\x12\x0f\n\x07Tooltip\x18\x03 \x02(\t\x12\x0e\n\x06Output\x18\x04 \x02(\x08\x12$\n\x06Inputs\x18\x05 \x03(\x0b\x32\x14.brain.Command.Input\x12,\n\x0eOptionalInputs\x18\x06 \x03(\x0b\x32\x14.brain.Command.Input\x1a\x43\n\x05Input\x12\x0c\n\x04Name\x18\x01 \x02(\t\x12\x0c\n\x04Type\x18\x02 \x02(\t\x12\x0f\n\x07Tooltip\x18\x03 \x02(\t\x12\r\n\x05Value\x18\x04 \x02(\t\"l\n\x06Target\x12\n\n\x02id\x18\x01 \x01(\t\x12\x12\n\nPluginName\x18\x02 \x02(\t\x12\x10\n\x08Location\x18\x03 \x02(\t\x12\x0c\n\x04Port\x18\x04 \x02(\t\x12\"\n\x08Optional\x18\x05 \x01(\x0b\x32\x10.brain.Telemetry\"\xb3\x01\n\tTelemetry\x12\x0c\n\x04init\x18\x01 \x01(\t\x12\'\n\x06\x43ommon\x18\x02 \x01(\x0b\x32\x17.brain.Telemetry.common\x12+\n\x08Specific\x18\x03 \x01(\x0b\x32\x19.brain.Telemetry.specific\x1a\n\n\x08specific\x1a\x36\n\x06\x63ommon\x12\x0f\n\x07\x43heckin\x18\x01 \x01(\x02\x12\r\n\x05\x41\x64min\x18\x02 \x01(\x08\x12\x0c\n\x04User\x18\x03 \x01(\t\"\xa5\x01\n\x03Job\x12\n\n\x02id\x18\x01 \x01(\t\x12 \n\tJobTarget\x18\x02 \x02(\x0b\x32\r.brain.Target\x12\x0e\n\x06Status\x18\x03 \x02(\t\x12\x11\n\tStartTime\x18\x04 \x02(\x02\x12\x12\n\nExpireTime\x18\x05 \x01(\x02\x12\x15\n\rCompletedTime\x18\x06 \x01(\x02\x12\"\n\nJobCommand\x18\x07 \x02(\x0b\x32\x0e.brain.Command\"D\n\x06Output\x12\n\n\x02id\x18\x01 \x01(\t\x12\x1d\n\tOutputJob\x18\x02 \x02(\x0b\x32\n.brain.Job\x12\x0f\n\x07\x43ontent\x18\x03 \x02(\t\"e\n\x08JobAudit\x12\n\n\x02id\x18\x01 \x01(\t\x12\x13\n\x0b\x63hange_time\x18\x02 \x02(\x02\x12\x1b\n\x07old_val\x18\x03 \x02(\x0b\x32\n.brain.Job\x12\x1b\n\x07new_val\x18\x04 \x02(\x0b\x32\n.brain.Job\"n\n\x0bTargetAudit\x12\n\n\x02id\x18\x01 \x01(\t\x12\x13\n\x0b\x63hange_time\x18\x02 \x02(\x02\x12\x1e\n\x07old_val\x18\x03 \x02(\x0b\x32\r.brain.Target\x12\x1e\n\x07new_val\x18\x04 \x02(\x0b\x32\r.brain.Target\"e\n\x0bOutputAudit\x12\n\n\x02id\x18\x01 \x01(\t\x12\n\n\x02ts\x18\x02 \x02(\x02\x12\x1e\n\x07old_val\x18\x03 \x02(\x0b\x32\r.brain.Output\x12\x1e\n\x07new_val\x18\x04 \x02(\x0b\x32\r.brain.Output\"\x89\x01\n\x05\x41udit\x12\n\n\x02id\x18\x01 \x01(\t\x12\x1e\n\x03Job\x18\x02 \x01(\x0b\x32\x0f.brain.JobAuditH\x00\x12$\n\x06Target\x18\x03 \x01(\x0b\x32\x12.brain.TargetAuditH\x00\x12$\n\x06Output\x18\x04 \x01(\x0b\x32\x12.brain.OutputAuditH\x00\x42\x08\n\x06record\"O\n\x06\x42inary\x12\x0c\n\x04Name\x18\x02 \x02(\t\x12\x11\n\tTimestamp\x18\x03 \x02(\x02\x12\x13\n\x0b\x43ontentType\x18\x04 \x02(\t\x12\x0f\n\x07\x43ontent\x18\x05 \x02(\x0c\")\n\x07Targets\x12\x1e\n\x07Targets\x18\x01 \x03(\x0b\x32\r.brain.Target\" \n\x04Jobs\x12\x18\n\x04Jobs\x18\x01 \x03(\x0b\x32\n.brain.Job\",\n\x08\x43ommands\x12 \n\x08\x43ommands\x18\x01 \x03(\x0b\x32\x0e.brain.Command\"\xe3\x01\n\x06Plugin\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04Name\x18\x02 \x02(\t\x12\x13\n\x0bServiceName\x18\x03 \x02(\t\x12\x11\n\tServiceID\x18\x04 \x01(\t\x12\x11\n\x02OS\x18\x05 \x02(\t:\x05posix\x12\x18\n\x05State\x18\x06 \x02(\t:\tAvailable\x12\x14\n\x0c\x44\x65siredState\x18\x07 \x02(\t\x12\x11\n\tInterface\x18\x08 \x02(\t\x12\x15\n\rExternalPorts\x18\t \x03(\t\x12\x15\n\rInternalPorts\x18\n \x03(\t\x12\x13\n\x0b\x45nvironment\x18\x0b \x03(\t\"r\n\x04Port\x12\n\n\x02id\x18\x01 \x01(\t\x12\x11\n\tInterface\x18\x02 \x02(\t\x12\x10\n\x08TCPPorts\x18\x03 \x03(\t\x12\x10\n\x08UDPPorts\x18\x04 \x03(\t\x12\x14\n\x0cNodeHostName\x18\x05 \x02(\t\x12\x11\n\x02OS\x18\x06 \x02(\t:\x05posix\"\x95\x01\n\x03Log\x12\n\n\x02id\x18\x01 \x01(\t\x12\n\n\x02rt\x18\x02 \x02(\x05\x12\x10\n\x08Severity\x18\x03 \x01(\x05\x12\x0b\n\x03msg\x18\x04 \x01(\t\x12\"\n\x06msgDoc\x18\x05 \x01(\x0b\x32\x12.brain.Log.Message\x12\r\n\x05shost\x18\x06 \x01(\t\x12\x19\n\x11sourceServiceName\x18\x07 \x01(\t\x1a\t\n\x07Message\" \n\x04Logs\x12\x18\n\x04Logs\x18\x01 \x03(\x0b\x32\n.brain.Log')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -69,7 +68,6 @@ _COMMAND_INPUT = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -134,7 +132,6 @@ _COMMAND = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -193,7 +190,6 @@ _TARGET = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -217,7 +213,6 @@ _TELEMETRY_SPECIFIC = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -235,7 +230,7 @@ _TELEMETRY_COMMON = _descriptor.Descriptor(
     _descriptor.FieldDescriptor(
       name='Checkin', full_name='brain.Telemetry.common.Checkin', index=0,
       number=1, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -261,7 +256,6 @@ _TELEMETRY_COMMON = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -305,7 +299,6 @@ _TELEMETRY = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -345,21 +338,21 @@ _JOB = _descriptor.Descriptor(
     _descriptor.FieldDescriptor(
       name='StartTime', full_name='brain.Job.StartTime', index=3,
       number=4, type=2, cpp_type=6, label=2,
-      has_default_value=False, default_value=float(0),
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='ExpireTime', full_name='brain.Job.ExpireTime', index=4,
       number=5, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
     _descriptor.FieldDescriptor(
       name='CompletedTime', full_name='brain.Job.CompletedTime', index=5,
       number=6, type=2, cpp_type=6, label=1,
-      has_default_value=False, default_value=float(0),
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -378,7 +371,6 @@ _JOB = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -423,7 +415,6 @@ _OUTPUT = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -449,7 +440,7 @@ _JOBAUDIT = _descriptor.Descriptor(
     _descriptor.FieldDescriptor(
       name='change_time', full_name='brain.JobAudit.change_time', index=1,
       number=2, type=2, cpp_type=6, label=2,
-      has_default_value=False, default_value=float(0),
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -475,7 +466,6 @@ _JOBAUDIT = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -501,7 +491,7 @@ _TARGETAUDIT = _descriptor.Descriptor(
     _descriptor.FieldDescriptor(
       name='change_time', full_name='brain.TargetAudit.change_time', index=1,
       number=2, type=2, cpp_type=6, label=2,
-      has_default_value=False, default_value=float(0),
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -527,7 +517,6 @@ _TARGETAUDIT = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -553,7 +542,7 @@ _OUTPUTAUDIT = _descriptor.Descriptor(
     _descriptor.FieldDescriptor(
       name='ts', full_name='brain.OutputAudit.ts', index=1,
       number=2, type=2, cpp_type=6, label=2,
-      has_default_value=False, default_value=float(0),
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -579,7 +568,6 @@ _OUTPUTAUDIT = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -631,7 +619,6 @@ _AUDIT = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
@@ -660,7 +647,7 @@ _BINARY = _descriptor.Descriptor(
     _descriptor.FieldDescriptor(
       name='Timestamp', full_name='brain.Binary.Timestamp', index=1,
       number=3, type=2, cpp_type=6, label=2,
-      has_default_value=False, default_value=float(0),
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None),
@@ -686,7 +673,6 @@ _BINARY = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -717,7 +703,6 @@ _TARGETS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -748,7 +733,6 @@ _JOBS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -779,7 +763,6 @@ _COMMANDS = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -880,7 +863,6 @@ _PLUGIN = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
@@ -946,12 +928,135 @@ _PORT = _descriptor.Descriptor(
   ],
   options=None,
   is_extendable=False,
-  syntax='proto2',
   extension_ranges=[],
   oneofs=[
   ],
   serialized_start=1675,
   serialized_end=1789,
+)
+
+
+_LOG_MESSAGE = _descriptor.Descriptor(
+  name='Message',
+  full_name='brain.Log.Message',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1932,
+  serialized_end=1941,
+)
+
+_LOG = _descriptor.Descriptor(
+  name='Log',
+  full_name='brain.Log',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='id', full_name='brain.Log.id', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='rt', full_name='brain.Log.rt', index=1,
+      number=2, type=5, cpp_type=1, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='Severity', full_name='brain.Log.Severity', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='msg', full_name='brain.Log.msg', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='msgDoc', full_name='brain.Log.msgDoc', index=4,
+      number=5, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='shost', full_name='brain.Log.shost', index=5,
+      number=6, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='sourceServiceName', full_name='brain.Log.sourceServiceName', index=6,
+      number=7, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[_LOG_MESSAGE, ],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1792,
+  serialized_end=1941,
+)
+
+
+_LOGS = _descriptor.Descriptor(
+  name='Logs',
+  full_name='brain.Logs',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='Logs', full_name='brain.Logs.Logs', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=1943,
+  serialized_end=1975,
 )
 
 _COMMAND_INPUT.containing_type = _COMMAND
@@ -986,6 +1091,9 @@ _AUDIT.fields_by_name['Output'].containing_oneof = _AUDIT.oneofs_by_name['record
 _TARGETS.fields_by_name['Targets'].message_type = _TARGET
 _JOBS.fields_by_name['Jobs'].message_type = _JOB
 _COMMANDS.fields_by_name['Commands'].message_type = _COMMAND
+_LOG_MESSAGE.containing_type = _LOG
+_LOG.fields_by_name['msgDoc'].message_type = _LOG_MESSAGE
+_LOGS.fields_by_name['Logs'].message_type = _LOG
 DESCRIPTOR.message_types_by_name['Command'] = _COMMAND
 DESCRIPTOR.message_types_by_name['Target'] = _TARGET
 DESCRIPTOR.message_types_by_name['Telemetry'] = _TELEMETRY
@@ -1001,6 +1109,8 @@ DESCRIPTOR.message_types_by_name['Jobs'] = _JOBS
 DESCRIPTOR.message_types_by_name['Commands'] = _COMMANDS
 DESCRIPTOR.message_types_by_name['Plugin'] = _PLUGIN
 DESCRIPTOR.message_types_by_name['Port'] = _PORT
+DESCRIPTOR.message_types_by_name['Log'] = _LOG
+DESCRIPTOR.message_types_by_name['Logs'] = _LOGS
 
 Command = _reflection.GeneratedProtocolMessageType('Command', (_message.Message,), dict(
 
@@ -1130,6 +1240,28 @@ Port = _reflection.GeneratedProtocolMessageType('Port', (_message.Message,), dic
   # @@protoc_insertion_point(class_scope:brain.Port)
   ))
 _sym_db.RegisterMessage(Port)
+
+Log = _reflection.GeneratedProtocolMessageType('Log', (_message.Message,), dict(
+
+  Message = _reflection.GeneratedProtocolMessageType('Message', (_message.Message,), dict(
+    DESCRIPTOR = _LOG_MESSAGE,
+    __module__ = 'brain_pb2'
+    # @@protoc_insertion_point(class_scope:brain.Log.Message)
+    ))
+  ,
+  DESCRIPTOR = _LOG,
+  __module__ = 'brain_pb2'
+  # @@protoc_insertion_point(class_scope:brain.Log)
+  ))
+_sym_db.RegisterMessage(Log)
+_sym_db.RegisterMessage(Log.Message)
+
+Logs = _reflection.GeneratedProtocolMessageType('Logs', (_message.Message,), dict(
+  DESCRIPTOR = _LOGS,
+  __module__ = 'brain_pb2'
+  # @@protoc_insertion_point(class_scope:brain.Logs)
+  ))
+_sym_db.RegisterMessage(Logs)
 
 
 # @@protoc_insertion_point(module_scope)

@@ -122,3 +122,29 @@ message Port {
     required string NodeHostName = 5;
     required string OS = 6 [default = "posix"];
 }
+
+message Log {
+    // These key names CEF v25
+    optional string id = 1;
+    required int32 rt = 2;           // NOTE: Milliseconds since 1970
+                                     // python == float, and cef == int32
+    optional int32 Severity = 3;
+    optional string msg = 4;         // An arbitrary message giving more
+                                     // details about the event. Multi-line
+                                     // entries can be produced by using
+                                     // as the new line separator.
+    optional Message msgDoc = 5;
+    optional string shost = 6;
+    optional string sourceServiceName = 7;
+
+
+    message Message {
+        // can be arbitrary object
+
+
+    }
+}
+
+message Logs {
+    repeated Log Logs = 1;
+}

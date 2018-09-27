@@ -1,7 +1,8 @@
 #!/usr/bin/python
+"""Docstrings"""
 from setuptools import setup, find_packages
 
-VERSION = "0.1.61"
+VERSION = "0.1.63"
 
 setup(
     name="ramrodbrain",
@@ -22,9 +23,9 @@ setup(
         "python-magic"
     ],
     classifiers=[
-                       'License :: OSI Approved :: MIT License',
-                       'Operating System :: OS Independent',
-                       'Programming Language :: Python',
-                       'Programming Language :: Python :: 3',
-                   ],
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+    ],
 )
