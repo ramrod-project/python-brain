@@ -126,8 +126,8 @@ message Port {
 message Log {
     // These key names CEF v25
     optional string id = 1;
-    required int32 rt = 2;           // NOTE: Milliseconds since 1970
-                                     // python == float, and cef == int32
+    required int64 rt = 2;           // NOTE: Milliseconds since 1970
+                                     // python == float, and cef == int
     optional int32 Severity = 3;
     optional string msg = 4;         // An arbitrary message giving more
                                      // details about the event. Multi-line
@@ -137,10 +137,10 @@ message Log {
     optional string shost = 6;
     optional string sourceServiceName = 7;
 
-
     message Message {
         // can be arbitrary object
-
+        optional string ContainerName = 1;
+        optional string ContainerID = 2;
 
     }
 }
