@@ -1,7 +1,8 @@
 #!/usr/bin/python
+"""Docstrings"""
 from setuptools import setup, find_packages
 
-VERSION = "0.1.64"
+VERSION = "0.1.65"
 
 setup(
     name="ramrodbrain",

@@ -112,6 +112,7 @@ message Plugin {
     repeated string ExternalPorts = 9;
     repeated string InternalPorts = 10;
     repeated string Environment = 11;
+    optional bool Extra = 12;
 }
 
 message Port {

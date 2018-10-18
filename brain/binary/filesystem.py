@@ -20,7 +20,8 @@ noop = lambda *args, **kwargs: None  # :pragma-nocover #PEP-559
 
 
 try:  # :pragma-nocover
-    from fuse import FUSE, FuseOSError, Operations, c_stat, ENOENT  # :pragma-nocover
+    from fuse import FUSE, FuseOSError, Operations, c_stat  # :pragma-nocover
+    from errno import ENOENT
     has_fuse = True  # :pragma-nocover
 except ImportError as import_error:  # :pragma-nocover
     err_str = str(import_error)  # :pragma-nocover
