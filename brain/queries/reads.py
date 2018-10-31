@@ -8,7 +8,8 @@ from ..connection import rethinkdb as r
 from ..decorators import deprecated_function
 from ..static import RPX, RBT, RBJ, RBO, COMMAND_NAME_KEY, LOCATION_FIELD, \
     PLUGIN_NAME_KEY, STATUS_FIELD, READY, TARGET_FIELD, START_FIELD, DONE, \
-    ID_FIELD, OUTPUTJOB_FIELD, CONTENT_FIELD, EXPIRE_FIELD, PORT_FIELD
+    ID_FIELD, OUTPUTJOB_FIELD, CONTENT_FIELD, EXPIRE_FIELD, PORT_FIELD, \
+    COMPLETED
 from . import CUSTOM_FILTER_NAME
 from .decorators import wrap_connection
 from .decorators import wrap_rethink_generator_errors
@@ -120,6 +121,7 @@ def get_job_status(job_id, conn=None):
 
 @wrap_rethink_errors
 @wrap_connection
+@deprecated_function(replacement="brain.queries.is_job_complete")
 def is_job_done(job_id, conn=None):
     """
     is_job_done function checks to if Brain.Jobs Status is 'Done'
@@ -132,6 +134,25 @@ def is_job_done(job_id, conn=None):
     get_done = RBJ.get_all(DONE, index=STATUS_FIELD)
     for item in get_done.filter({ID_FIELD: job_id}).run(conn):
         result = item
+    return result
+
+
+@wrap_rethink_errors
+@wrap_connection
+def is_job_complete(job_id, conn=None):
+    """
+    is_job_done function checks to if Brain.Jobs Status is Completed
+
+    Completed is defined in statics as Done|Stopped|Error
+
+    :param job_id: <str> id for the job
+    :param conn: (optional)<connection> to run on
+    :return: <dict> if job is done <false> if
+    """
+    result = False
+    job = RBJ.get(job_id).run(conn)
+    if job and job.get(STATUS_FIELD) in COMPLETED:
+        result = job
     return result
 
 

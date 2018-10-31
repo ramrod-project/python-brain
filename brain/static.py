@@ -33,7 +33,7 @@ DONE = "Done"
 ERROR = "Error"
 WAITING = "Waiting"
 ACTIVE = "Active"
-
+COMPLETED = frozenset([DONE, ERROR, STOP])
 SUCCESS = "success"
 FAILURE = "failure"
 TRANSITION = "transition"
