@@ -2,7 +2,7 @@
 """Docstrings"""
 from setuptools import setup, find_packages
 
-VERSION = "0.1.66"
+VERSION = "0.1.67"
 
 setup(
     name="ramrodbrain",

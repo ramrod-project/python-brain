@@ -11,17 +11,20 @@ from ..brain_pb2 import Binary
 from ..queries import RBF
 from .decorators import wrap_name_to_id, wrap_guess_content_type
 from .decorators import wrap_content_as_binary_if_needed
+from .decorators import wrap_split_big_content
 from . import PRIMARY_FIELD, CONTENT_FIELD, TIMESTAMP_FIELD
+from . import PART_FIELD, PARTS_FIELD, PARENT_FIELD
 
 BINARY = r.binary
 
 
 @wrap_rethink_errors
-@wrap_name_to_id
-@wrap_guess_content_type
-@wrap_content_as_binary_if_needed
 @wrap_connection_reconnect_test
 @wrap_connection
+@wrap_name_to_id
+@wrap_guess_content_type
+@wrap_split_big_content
+@wrap_content_as_binary_if_needed
 def put(obj_dict, conn=None, **kwargs):
     """
     This function might thorw an error like:
@@ -61,7 +64,17 @@ def get(filename, conn=None):
     :param conn:
     :return: <dict>
     """
-    return RBF.get(filename).run(conn)
+    res_file = RBF.get(filename).run(conn)
+    full_content = b""
+    try:
+        for part in res_file[PARTS_FIELD]:
+            part_file = RBF.get(part).run(conn)
+            full_content += part_file[CONTENT_FIELD]
+
+        res_file[CONTENT_FIELD] = full_content
+    except KeyError:
+        return res_file
+    return res_file
 
 
 @wrap_rethink_errors
@@ -72,7 +85,7 @@ def list_dir(conn=None):
     :param conn:
     :return: <list>
     """
-    available = RBF.pluck(PRIMARY_FIELD).run(conn)
+    available = RBF.filter({PART_FIELD: False}).pluck(PRIMARY_FIELD).run(conn)
     return [x[PRIMARY_FIELD] for x in available]
 
 
@@ -86,4 +99,4 @@ def delete(filename, conn=None):
     :param conn: <rethinkdb.DefaultConnection>
     :return: <dict>
     """
-    return RBF.get(filename).delete().run(conn)
+    return RBF.filter((r.row[PRIMARY_FIELD] == filename) | (r.row[PARENT_FIELD] == filename)).delete().run(conn)

@@ -6,5 +6,11 @@ PRIMARY_KEY = "id"
 CONTENT_FIELD = "Content"
 CONTENTTYPE_FIELD = "ContentType"
 TIMESTAMP_FIELD = "Timestamp"
+PARTS_FIELD = "Parts"
+PART_FIELD = "Part"
+PARENT_FIELD = "Parent"
+
+CHUNK_POSTFIX = "{}.{}"
+CHUNK_ZPAD = 3
 
 from .data import *

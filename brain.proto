@@ -88,6 +88,9 @@ message Binary {
     required float Timestamp = 3;
     required string ContentType = 4;
     required bytes Content = 5;
+    optional bool Part = 6;
+    repeated string Parts = 7;
+    optional string Parent = 8;
 }
 
 message Targets {
