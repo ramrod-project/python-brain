@@ -9,6 +9,7 @@ from ..decorators import deprecated_function
 from ..static import START_FIELD, STATUS_FIELD, ID_FIELD, OUTPUTJOB_FIELD, \
     CONTENT_FIELD, COMMAND_NAME_KEY, RDB_UPDATE, RDB_REPLACE, EXPIRE_FIELD, \
     TIMEOUT_ERROR
+from . import CUSTOM_FILTER_NAME, IDX_OUTPUT_JOB_ID, IDX_STATUS
 from .decorators import wrap_connection, wrap_rethink_errors
 from . import RPX, RBT, RBJ, RPC, RPP, RBO
 from .reads import plugin_exists, get_job_by_id
@@ -16,27 +17,33 @@ from .reads import plugin_exists, get_job_by_id
 VALID_STATES = STATES
 
 
-def waiting_filter(lte_time):
+def waiting_filter(lte_time, conn=None):
     """
     generates a filter for status==waiting and
     time older than lte_time
     """
-    return ((r.row[STATUS_FIELD] == WAITING) &
+    if RBO.index_list().contains(IDX_OUTPUT_JOB_ID).run(conn):
+        return (r.row[START_FIELD] <= lte_time)
+    else:
+        return ((r.row[STATUS_FIELD] == WAITING) &
             (r.row[START_FIELD] <= lte_time))
 
 
-def expire_filter(lte_time):
+def expire_filter(lte_time, conn=None):
     """
     generates a filter for status==waiting and
     time older than lte_time
     """
-    return (
+    if RBO.index_list().contains(IDX_OUTPUT_JOB_ID).run(conn):
+        return (r.row[EXPIRE_FIELD] <= lte_time)
+    else:
+        return (
             (
                 (r.row[STATUS_FIELD] == WAITING) |
                 (r.row[STATUS_FIELD] == READY)
             ) &
             (r.row[EXPIRE_FIELD] <= lte_time)
-    )
+        )
 
 
 @deprecated_function(replacement="brain.controller.plugins.has_port_conflict")
@@ -99,9 +106,14 @@ def update_job_status(job_id, status, conn=None):
     job_update = RBJ.get(job_id).update({STATUS_FIELD: status}).run(conn)
     if job_update["replaced"] == 0 and job_update["unchanged"] == 0:
         raise ValueError("Unknown job_id: {}".format(job_id))
-    id_filter = (r.row[OUTPUTJOB_FIELD][ID_FIELD] == job_id)
     output_job_status = {OUTPUTJOB_FIELD: {STATUS_FIELD: status}}
-    output_update = RBO.filter(id_filter).update(output_job_status).run(conn)
+    if RBO.index_list().contains(IDX_OUTPUT_JOB_ID).run(conn):
+        # NEW
+        output_update = RBO.get_all(job_id, index=IDX_OUTPUT_JOB_ID).update(output_job_status).run(conn)
+    else:
+        # OLD
+        id_filter = (r.row[OUTPUTJOB_FIELD][ID_FIELD] == job_id)
+        output_update = RBO.filter(id_filter).update(output_job_status).run(conn)
     return {str(RBJ): job_update, str(RBO): output_update}
 
 
@@ -220,9 +232,15 @@ def transition_waiting(start_time, conn=None):
     :param conn: <rethinkdb.DefaultConnection>
     :return: <dict> standard rethinkdb output dict
     """
-    wait_filter = waiting_filter(start_time)
+    wait_filter = waiting_filter(start_time, conn)
     status_change = {STATUS_FIELD: transition_success(WAITING)}
-    return RBJ.filter(wait_filter).update(status_change).run(conn)
+    if RBO.index_list().contains(IDX_OUTPUT_JOB_ID).run(conn):
+        # NEW
+        return RBJ.get_all(WAITING, index=IDX_STATUS).filter(wait_filter).update(status_change).run(conn)
+    else:
+        #OLD
+        return RBJ.filter(wait_filter).update(status_change).run(conn)
+
 
 
 @wrap_rethink_errors
@@ -234,9 +252,14 @@ def transition_expired(expire_time, conn=None):
     :param conn: <rethinkdb.DefaultConnection>
     :return: <dict> standard rethinkdb output dict
     """
-    expired_filter = expire_filter(expire_time)
+    expired_filter = expire_filter(expire_time, conn)
     status_change = {STATUS_FIELD: transition_fail(READY)}
     for job in RBJ.filter(expired_filter).run(conn):
         job[STATUS_FIELD] = status_change[STATUS_FIELD]
         write_output(job[ID_FIELD], TIMEOUT_ERROR, conn=conn)
-    return RBJ.filter(expired_filter).update(status_change).run(conn)
+    if RBO.index_list().contains(IDX_OUTPUT_JOB_ID).run(conn):
+        # NEW
+        return RBJ.get_all(WAITING, READY, index=IDX_STATUS).filter(expired_filter).update(status_change).run(conn)
+    else:
+        #OLD
+        return RBJ.filter(expired_filter).update(status_change).run(conn)

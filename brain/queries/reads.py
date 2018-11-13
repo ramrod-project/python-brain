@@ -10,7 +10,7 @@ from ..static import RPX, RBT, RBJ, RBO, COMMAND_NAME_KEY, LOCATION_FIELD, \
     PLUGIN_NAME_KEY, STATUS_FIELD, READY, TARGET_FIELD, START_FIELD, DONE, \
     ID_FIELD, OUTPUTJOB_FIELD, CONTENT_FIELD, EXPIRE_FIELD, PORT_FIELD, \
     COMPLETED
-from . import CUSTOM_FILTER_NAME
+from . import CUSTOM_FILTER_NAME, IDX_OUTPUT_JOB_ID, IDX_STATUS
 from .decorators import wrap_connection
 from .decorators import wrap_rethink_generator_errors
 from .decorators import wrap_rethink_errors
@@ -168,7 +168,12 @@ def get_output_content(job_id, max_size=1024, conn=None):
     :return: <str> or <bytes>
     """
     content = None
-    check_status = RBO.filter({OUTPUTJOB_FIELD: {ID_FIELD: job_id}}).run(conn)
+    if RBO.index_list().contains(IDX_OUTPUT_JOB_ID).run(conn):
+        # NEW
+        check_status = RBO.get_all(job_id, index=IDX_OUTPUT_JOB_ID).run(conn)
+    else:
+        # OLD
+        check_status = RBO.filter({OUTPUTJOB_FIELD: {ID_FIELD: job_id}}).run(conn)
     for status_item in check_status:
         content = _truncate_output_content_if_required(status_item, max_size)
     return content
